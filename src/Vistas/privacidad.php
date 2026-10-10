@@ -18,6 +18,7 @@ $dato = static fn(string $clave): string => trim((string) ($sitio[$clave] ?? '')
       Contacto: <?= $dato('email') !== '' ? '<a href="mailto:' . e($dato('email')) . '">' . e($dato('email')) . '</a>' : 'pendiente de completar' ?>.</p>
 
     <h2>Qué datos tratamos y para qué</h2>
+    <div class="tabla-scroll" role="region" tabindex="0" aria-label="Tabla: Qué datos tratamos y para qué">
     <table>
       <thead><tr><th>Dato</th><th>Para qué</th><th>Cuánto tiempo</th></tr></thead>
       <tbody>
@@ -43,6 +44,7 @@ $dato = static fn(string $clave): string => trim((string) ($sitio[$clave] ?? '')
         </tr>
       </tbody>
     </table>
+    </div>
     <p>No usamos cookies de analítica, publicidad ni seguimiento, ni cargamos recursos de terceros: el autocompletado de municipios consulta a nuestro propio servidor. Como las cookies que usamos son estrictamente técnicas, no necesitan tu consentimiento.</p>
 
     <h2>Enlaces para compartir</h2>

@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 use CalculadoraImportacion\Web\Vista;
 use function CalculadoraImportacion\Web\e;
+use function CalculadoraImportacion\Web\icono;
 
 /** @var string $contenido */
 /** @var array $meta */
 $activa = $meta['activa'] ?? '';
-$enlaceNav = static function (string $ruta, string $texto, string $clave) use ($activa): string {
+$enlaceNav = static function (string $ruta, string $texto, string $clave, string $icono) use ($activa): string {
     $actual = $activa === $clave ? ' aria-current="page"' : '';
-    return '<a href="' . e($ruta) . '"' . $actual . '>' . e($texto) . '</a>';
+    return '<a href="' . e($ruta) . '"' . $actual . '>' . icono($icono) . '<span>' . e($texto) . '</span></a>';
 };
 ?><!doctype html>
 <html lang="es">
@@ -24,28 +25,25 @@ $enlaceNav = static function (string $ruta, string $texto, string $clave) use ($
 <meta name="robots" content="<?= e($meta['robots']) ?>">
 <?php endif; ?>
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f6f2e9" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#14181f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0d2841">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/app.css?v=<?= e(Vista::version('/assets/app.css')) ?>">
 <script src="/assets/app.js?v=<?= e(Vista::version('/assets/app.js')) ?>" defer></script>
 </head>
 <body class="<?= e($meta['clase'] ?? '') ?>">
+<?= Vista::renderizar('sprite') ?>
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 <header class="cabecera">
   <div class="contenedor cabecera__fila">
     <a class="marca" href="/" aria-label="Calculadora de importación, ir al inicio">
-      <svg class="marca__sello" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false">
-        <rect width="32" height="32" rx="8" fill="currentColor"/>
-        <path d="M7 22 C 11 10, 17 22, 25 10" fill="none" stroke="#fffdf8" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="1 4.2"/>
-        <circle cx="7" cy="22" r="2.6" fill="#fffdf8"/><circle cx="25" cy="10" r="2.6" fill="#fffdf8"/>
-      </svg>
+      <span class="marca__sello"><?= icono('coche') ?></span>
       <span class="marca__texto">Calculadora<span> de importación</span></span>
     </a>
     <nav class="nav" aria-label="Principal">
-      <?= $enlaceNav('/', 'Calcular', 'inicio') ?>
-      <?= $enlaceNav('/guias', 'Guías', 'guias') ?>
-      <?= $enlaceNav('/historial', 'Historial', 'historial') ?>
+      <?= $enlaceNav('/', 'Calculadora', 'inicio', 'calculadora') ?>
+      <?= $enlaceNav('/guias', 'Guías', 'guias', 'libro') ?>
+      <?= $enlaceNav('/historial', 'Historial', 'historial', 'historial') ?>
     </nav>
   </div>
 </header>

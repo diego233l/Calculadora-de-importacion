@@ -13,6 +13,7 @@ use function CalculadoraImportacion\Web\e;
 
     <h2>El tipo depende del CO₂</h2>
     <p>Según las emisiones oficiales de CO₂ (ciclo WLTP) que constan en la ficha técnica:</p>
+    <div class="tabla-scroll" role="region" tabindex="0" aria-label="Tabla: El tipo depende del CO₂">
     <table>
       <thead><tr><th>Emisiones</th><th>Tipo estatal</th></tr></thead>
       <tbody>
@@ -22,6 +23,7 @@ use function CalculadoraImportacion\Web\e;
         <tr><td>200 g/km o más</td><td>14,75 %</td></tr>
       </tbody>
     </table>
+    </div>
     <p>Las comunidades autónomas pueden subir estos tipos hasta un 15 %. En 2026 lo han hecho solo en el tramo de 200 g/km o más: <strong>16 %</strong> en Asturias, Baleares, Cataluña y la Comunitat Valenciana, <strong>15,9 %</strong> en Murcia y <strong>15 %</strong> en Cantabria. En Andalucía y en el resto, el tipo es el estatal. Si el CO₂ no se acredita con el certificado del fabricante, la ley aplica el tipo más alto.</p>
 
     <h2>La base: ¿sobre qué importe se paga?</h2>
@@ -32,6 +34,7 @@ use function CalculadoraImportacion\Web\e;
 
     <h2>Cómo se calcula el valor de un usado</h2>
     <p>Cada año, una orden del Ministerio de Hacienda publica el precio medio de cada modelo. Para 2026, la <a href="https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26357" rel="noopener noreferrer">Orden HAC/1501/2025</a>. Ese precio se multiplica por un porcentaje que baja con la antigüedad del coche:</p>
+    <div class="tabla-scroll" role="region" tabindex="0" aria-label="Tabla: Cómo se calcula el valor de un usado">
     <table>
       <thead><tr><th>Años de uso</th><th>Porcentaje</th><th>Años de uso</th><th>Porcentaje</th></tr></thead>
       <tbody>
@@ -44,6 +47,7 @@ use function CalculadoraImportacion\Web\e;
         <tr><td></td><td></td><td>Más de 12</td><td>10 %</td></tr>
       </tbody>
     </table>
+    </div>
 
     <h2>El descuento por venir ya matriculado en el extranjero</h2>
     <p>Un coche usado que ya estuvo matriculado en otro país lleva incorporados impuestos indirectos en su valor. La orden permite quitarlos con esta fórmula:</p>

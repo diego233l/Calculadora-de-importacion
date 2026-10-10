@@ -109,6 +109,7 @@
       oculto.value = o.ine;
       entrada.removeAttribute('aria-invalid');
       cerrar();
+      contenedor.dispatchEvent(new CustomEvent('municipio-elegido', { bubbles: true, detail: { ine: o.ine, texto: entrada.value } }));
     }
 
     function pintar(resultados) {
@@ -171,6 +172,56 @@
     entrada.addEventListener('blur', function () { setTimeout(cerrar, 120); });
   }
   $$('[data-combo="municipios"]').forEach(iniciarCombo);
+
+  /* ---------- destino: «Cambiar» y municipio recordado (solo en este navegador) ---------- */
+  var CLAVE_MUNICIPIO = 'ci_municipio_v1';
+  function recordarMunicipio(ine, texto) {
+    try { window.localStorage.setItem(CLAVE_MUNICIPIO, JSON.stringify({ ine: ine, texto: texto })); } catch (e) { /* sin almacenamiento: no pasa nada */ }
+  }
+  function municipioRecordado() {
+    try {
+      var d = JSON.parse(window.localStorage.getItem(CLAVE_MUNICIPIO) || 'null');
+      return d && /^\d{5}$/.test(String(d.ine)) && typeof d.texto === 'string' && d.texto.length < 120 ? d : null;
+    } catch (e) { return null; }
+  }
+  var destino = $('[data-destino]');
+  if (destino) {
+    var nombreDestino = $('[data-destino-nombre]', destino);
+    var cambiar = $('.destino__cambiar', destino);
+    var icono = $('use', destino);
+    var campoIne = $('#f-municipio', destino);
+    var campoTexto = $('#f-municipio_texto', destino);
+    var marcarElegido = function (ine, texto, cerrar) {
+      campoIne.value = ine;
+      campoTexto.value = texto;
+      nombreDestino.textContent = texto;
+      cambiar.textContent = 'Cambiar';
+      destino.classList.remove('destino--falta');
+      if (icono) { icono.setAttribute('href', '#i-check'); }
+      if (cerrar) { destino.open = false; }
+    };
+    destino.addEventListener('municipio-elegido', function (ev) { marcarElegido(ev.detail.ine, ev.detail.texto, true); });
+    var recordado = municipioRecordado();
+    if (campoIne && campoTexto && campoIne.value === '' && campoTexto.value === '' && recordado) {
+      marcarElegido(recordado.ine, recordado.texto, true);
+    }
+    var formulario = destino.closest('form');
+    if (formulario) {
+      formulario.addEventListener('submit', function () {
+        if (/^\d{5}$/.test(campoIne.value) && campoTexto.value) { recordarMunicipio(campoIne.value, campoTexto.value); }
+      });
+    }
+  }
+
+  /* ---------- interruptores que recalculan al cambiarlos ---------- */
+  $$('[data-autoenviar]').forEach(function (caja) {
+    caja.addEventListener('change', function () {
+      var f = caja.closest('form');
+      if (f && typeof f.requestSubmit === 'function') { f.requestSubmit(); }
+    });
+    var boton = $('[data-autoenviar-boton]', caja.closest('form') || document);
+    if (boton) { boton.hidden = true; }
+  });
 
   /* ---------- campos que dependen de otros ---------- */
   function actualizarDependientes() {

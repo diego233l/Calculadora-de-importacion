@@ -53,8 +53,9 @@ prueba('L2. Todas las fixtures: cada dato esperado se lee con su valor exacto y 
                 $fallos[] = "$nombre: $campo = " . var_export($leido, true) . ' en vez de ' . var_export($valor, true);
             }
         }
-        // Lo que no está en lo esperado no puede haberse rellenado, salvo la versión, que sale del título y no se compara
-        foreach (array_diff(array_keys($r['campos']), array_keys($e['campos']), ['version']) as $sobra) {
+        // Lo que no está en lo esperado no puede haberse rellenado, salvo la versión (sale del título) y los datos meramente
+        // informativos de la tarjeta (cambio y ciudad), que se comprueban aparte en L7
+        foreach (array_diff(array_keys($r['campos']), array_keys($e['campos']), ['version', 'cambio', 'ciudad_vendedor']) as $sobra) {
             $fallos[] = "$nombre: se ha inventado $sobra = " . var_export($r['campos'][$sobra]['valor'], true);
         }
         $dudosos = $r['dudosos'];
@@ -151,4 +152,25 @@ prueba('L6. El selector CSS simple de los ficheros de selectores se traduce a XP
     Afirmar::igual(null, $x('a:hover'));
     Afirmar::igual(null, $x("a[href='x'] ~ b"));
     Afirmar::igual(null, $x(''));
+});
+
+prueba('L7. Cambio y ciudad del vendedor (datos de la tarjeta del coche) se leen con sus palabras en alemán, inglés o español', function (): void {
+    $f = fixturesAnuncios();
+    $casos = [
+        '01-dl-privado' => ['Automático', 'München'],
+        '10-electrico-sin-cc-ni-co2' => ['Automático', 'Hamburg'],
+        '16-etiquetas-en-ingles' => ['Manual', 'Leipzig'],
+        '17-etiquetas-en-espanol' => ['Manual', 'München'],
+        '31-texto-rotulo-y-valor-en-lineas' => ['Automático', 'München'],
+        '15-sin-kilometraje' => ['Automático', 'München'],
+    ];
+    foreach ($casos as $nombre => [$cambio, $ciudad]) {
+        $r = lectorPrueba()->analizarTexto($f[$nombre]['contenido'], '2026-10-10');
+        Afirmar::igual($cambio, $r['campos']['cambio']['valor'] ?? null, "$nombre cambio");
+        Afirmar::igual($ciudad, $r['campos']['ciudad_vendedor']['valor'] ?? null, "$nombre ciudad");
+    }
+    Afirmar::igual('Semiautomático', Valores::cambio('Halbautomatik'));
+    Afirmar::igual('Automático', Valores::cambio('Automatik'));
+    Afirmar::igual('Manual', Valores::cambio('Schaltgetriebe'));
+    Afirmar::igual(null, Valores::cambio('k. A.'));
 });

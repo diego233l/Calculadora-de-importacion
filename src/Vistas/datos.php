@@ -1,10 +1,13 @@
 <?php
 declare(strict_types=1);
 
+use CalculadoraImportacion\Web\TarjetaCoche;
+use CalculadoraImportacion\Web\Vista;
 use function CalculadoraImportacion\Web\avisoRevisar;
 use function CalculadoraImportacion\Web\campoMunicipio;
 use function CalculadoraImportacion\Web\campoTexto;
 use function CalculadoraImportacion\Web\e;
+use function CalculadoraImportacion\Web\icono;
 use function CalculadoraImportacion\Web\resumenErrores;
 
 /** @var string $csrf */
@@ -25,22 +28,27 @@ $combustibleActual = $v['combustible'] ?? '';
 $anuncio ??= ['estado' => 'ninguno'];
 $revisar = $anuncio['revisar'] ?? [];
 $leido = ($anuncio['estado'] ?? 'ninguno') === 'ok';
+$mostrarTarjeta = $leido || $editando;
 $puedePegar = !$editando && !$leido;
-
+$sinMunicipio = ($v['municipio'] ?? '') === '';
+$destinoAbierto = $sinMunicipio || isset($errores['municipio']) || !empty($anuncio['abrir_destino']);
+$datosAbiertos = !$mostrarTarjeta || $errores || array_filter($revisar, static fn(string $t): bool => str_contains($t, 'No lo hemos encontrado'));
+$coche = $mostrarTarjeta ? TarjetaCoche::desdeValores($v, $revisar) : null;
 ?>
 <div class="contenedor estrecho">
   <nav class="migas" aria-label="Migas de pan"><a href="/">Inicio</a> › <?= $editando ? 'Editar datos' : 'Datos del coche' ?></nav>
-  <h1><?= $editando ? 'Edita los datos del coche' : 'Los datos del coche' ?></h1>
+  <h1><?= $editando ? 'Edita los datos del coche' : ($leido ? 'Esto es lo que hemos leído' : 'Los datos del coche') ?></h1>
+
   <?php if ($leido): ?>
-    <div class="alerta alerta--info" role="status">
-      <span class="alerta__icono" aria-hidden="true">ℹ</span>
+    <div class="estado-lectura" role="status">
+      <?= icono('info') ?>
       <div>
         <p><strong>Hemos leído estos datos <?= e(($anuncio['fuente'] ?? '') === 'texto' ? 'del texto que has pegado' : 'del anuncio') ?>.</strong>
-          Los campos marcados con «Revisa» tienen poca confianza o no estaban en el anuncio: compruébalos antes de calcular. Tú tienes la última palabra sobre cada dato.</p>
+          Las casillas en amarillo tienen poca confianza o no estaban en el anuncio: revísalas con «Corregir o completar los datos». Tú tienes la última palabra sobre cada dato.</p>
         <?php foreach ($anuncio['avisos'] ?? [] as $aviso): ?><p><?= e($aviso) ?></p><?php endforeach; ?>
       </div>
     </div>
-  <?php else: ?>
+  <?php elseif (!$editando): ?>
     <p class="suave">Cópialos del anuncio de mobile.de. Si un dato no lo tienes, déjalo en blanco y te diremos qué partida no hemos podido calcular: nunca lo inventamos.</p>
     <?php if (!empty($anuncio['mensaje'])): ?>
       <div class="alerta alerta--atencion" role="status">
@@ -53,8 +61,8 @@ $puedePegar = !$editando && !$leido;
   <?= resumenErrores($errores, $etiquetas) ?>
 
   <?php if ($puedePegar): ?>
-    <details class="panel pegar-anuncio"<?= !empty($anuncio['mensaje']) ? ' open' : '' ?>>
-      <summary>Pegar el texto del anuncio para rellenar los datos</summary>
+    <details class="pegar-anuncio"<?= !empty($anuncio['mensaje']) ? ' open' : '' ?>>
+      <summary><?= icono('documento') ?>Pegar el texto del anuncio para rellenar los datos</summary>
       <form class="formulario" method="post" action="/datos" novalidate>
         <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
         <input type="hidden" name="enlace" value="<?= e($v['enlace'] ?? '') ?>">
@@ -70,18 +78,29 @@ $puedePegar = !$editando && !$leido;
     </details>
   <?php endif; ?>
 
-  <form class="formulario" method="post" action="/calcular" novalidate>
+  <form class="pila" method="post" action="/calcular" novalidate>
     <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+    <input type="hidden" name="cambio" value="<?= e($v['cambio'] ?? '') ?>">
+    <input type="hidden" name="ciudad_vendedor" value="<?= e($v['ciudad_vendedor'] ?? '') ?>">
 
-    <fieldset>
-      <legend>Anuncio y destino</legend>
-      <div class="formulario">
+    <?php if ($coche !== null): ?><?= Vista::renderizar('tarjeta_coche', ['coche' => $coche]) ?><?php endif; ?>
+
+    <details class="destino<?= $sinMunicipio ? ' destino--falta' : '' ?>" id="destino" data-destino<?= $destinoAbierto ? ' open' : '' ?>>
+      <summary>
+        <?= icono($sinMunicipio ? 'lugar' : 'check') ?>
+        <span class="destino__nombre" data-destino-nombre><?= $sinMunicipio ? '¿Dónde vas a matricularlo?' : e($v['municipio_texto'] ?? '') ?></span>
+        <span class="destino__cambiar"><?= $sinMunicipio ? 'Elegir' : 'Cambiar' ?></span>
+      </summary>
+      <div class="destino__cuerpo"><?= campoMunicipio($v, $errores, $candidatos) ?></div>
+    </details>
+
+    <button class="boton boton--grande boton--bloque" type="submit"><?= icono('calculadora') ?><span>Calcular costes de importación</span></button>
+
+    <details class="editar-datos"<?= $datosAbiertos ? ' open' : '' ?>>
+      <summary><?= icono('editar') ?>Corregir o completar los datos</summary>
+      <div class="editar-datos__cuerpo">
         <?= campoTexto('enlace', 'Enlace del anuncio de mobile.de', $v, $errores, ['modo' => 'url', 'pista' => 'Solo sirve para recordar de qué anuncio es el cálculo.']) ?>
-        <?= campoMunicipio($v, $errores, $candidatos) ?>
-      </div>
-    </fieldset>
-
-    <fieldset>
+      <fieldset>
       <legend>El coche</legend>
       <div class="formulario">
         <div class="rejilla rejilla--3">
@@ -122,7 +141,7 @@ $puedePegar = !$editando && !$leido;
       </div>
     </fieldset>
 
-    <fieldset>
+      <fieldset>
       <legend>Precio y vendedor</legend>
       <div class="formulario">
         <div class="rejilla rejilla--2">
@@ -145,7 +164,7 @@ $puedePegar = !$editando && !$leido;
       </div>
     </fieldset>
 
-    <fieldset>
+      <fieldset>
       <legend>Valoración del BOE <span class="opcional">(opcional)</span></legend>
       <div class="formulario">
         <?= campoTexto('boe_precio', 'Precio medio del modelo en el BOE (€)', $v, $errores, [
@@ -154,10 +173,11 @@ $puedePegar = !$editando && !$leido;
         ]) ?>
       </div>
     </fieldset>
-
-    <div class="botones">
-      <button class="boton" type="submit">Calcular el coste</button>
-      <a class="boton boton--secundario" href="<?= $editando ? '/c/' . e($editando) : '/' ?>">Cancelar</a>
-    </div>
+        <div class="botones">
+          <button class="boton" type="submit">Calcular el coste</button>
+          <a class="boton boton--secundario" href="<?= $editando ? '/c/' . e($editando) : '/' ?>">Cancelar</a>
+        </div>
+      </div>
+    </details>
   </form>
 </div>

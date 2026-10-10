@@ -65,7 +65,7 @@ prueba('W2. Rutas: 404, 405, cuerpo demasiado grande y HEAD', function (): void 
     Afirmar::igual(405, $app->manejar(peticionPost('/', []))->estado);
     Afirmar::igual(405, $app->manejar(peticionGet('/calcular'))->estado);
     Afirmar::igual(413, $app->manejar(new Peticion('POST', '/calcular', [], [], [], '10.0.0.1', false, 999999))->estado);
-    Afirmar::igual(303, $app->manejar(peticionGet('/datos'))->estado);
+    Afirmar::igual(200, $app->manejar(peticionGet('/datos'))->estado, 'rellenar a mano, sin anuncio');
     $head = $app->manejar(new Peticion('HEAD', '/'));
     Afirmar::igual(200, $head->estado);
     // Las páginas de error tampoco enseñan rutas internas
@@ -75,7 +75,7 @@ prueba('W2. Rutas: 404, 405, cuerpo demasiado grande y HEAD', function (): void 
 prueba('W3. CSRF: sin token, con token falso o con la cookie de otro navegador, se rechaza', function (): void {
     $app = appPrueba();
     [$cookies, $token] = sesionCsrf($app);
-    $datos = ['municipio' => '28079', 'municipio_texto' => 'Madrid', 'enlace' => ''];
+    $datos = ['enlace' => 'https://suchen.mobile.de/fahrzeuge/details.html?id=345678901'];
     Afirmar::igual(403, $app->manejar(peticionPost('/datos', $datos, $cookies))->estado, 'sin token');
     Afirmar::igual(403, $app->manejar(peticionPost('/datos', ['csrf' => str_repeat('a', 64)] + $datos, $cookies))->estado, 'token falso');
     Afirmar::igual(403, $app->manejar(peticionPost('/datos', ['csrf' => $token] + $datos, []))->estado, 'sin cookie');
@@ -91,40 +91,55 @@ prueba('W3. CSRF: sin token, con token falso o con la cookie de otro navegador, 
     Afirmar::contiene('caducado', $r->cuerpo);
 });
 
-prueba('W4. Primer paso: enlace y municipio se validan; solo mobile.de y solo comunidades soportadas', function (): void {
+prueba('W4. Primer paso: solo el enlace (o el texto) del anuncio; solo mobile.de; el municipio se elige en el paso siguiente', function (): void {
     $app = appPrueba();
     [$cookies, $token] = sesionCsrf($app);
     $envio = fn(array $d) => $app->manejar(peticionPost('/datos', ['csrf' => $token] + $d, $cookies));
 
-    $r = $envio(['enlace' => 'http://evil.com/x', 'municipio' => '', 'municipio_texto' => 'Madrid']);
+    $r = $envio(['enlace' => 'http://evil.com/x']);
     Afirmar::igual(422, $r->estado);
-    Afirmar::contiene('Solo se admiten', $r->cuerpo . 'Solo se admiten') ;   // el aviso exacto depende del primer fallo
+    Afirmar::contiene('mobile.de', $r->cuerpo);
     Afirmar::contiene('aria-invalid="true"', $r->cuerpo);
     Afirmar::contiene('role="alert"', $r->cuerpo);
 
-    $r = $envio(['enlace' => 'https://www.mobile.de.evil.com/fahrzeuge/details.html?id=345678901', 'municipio_texto' => 'Madrid']);
+    $r = $envio(['enlace' => 'https://www.mobile.de.evil.com/fahrzeuge/details.html?id=345678901']);
     Afirmar::igual(422, $r->estado);
     Afirmar::contiene('mobile.de', $r->cuerpo);
 
+    $r = $envio(['enlace' => '', 'texto_anuncio' => '']);
+    Afirmar::igual(422, $r->estado);
+    Afirmar::contiene('Pega el enlace del anuncio', $r->cuerpo);
+
+    // Con el enlace bien, se pasa al formulario de datos (sin leer el anuncio, mobile.de bloquea al descargador falso)
+    $r = $envio(['enlace' => 'https://suchen.mobile.de/fahrzeuge/details.html?id=345678901']);
+    Afirmar::igual(200, $r->estado);
+    Afirmar::contiene('details.html?id=345678901', $r->cuerpo);
+    Afirmar::contiene('¿Dónde vas a matricularlo?', $r->cuerpo);
+
+    // Un municipio que ya venía elegido se conserva
+    $r = $envio(['enlace' => 'https://suchen.mobile.de/fahrzeuge/details.html?id=345678901', 'municipio_texto' => 'Madrid']);
+    Afirmar::igual(200, $r->estado);
+    Afirmar::contiene('value="28079"', $r->cuerpo);
+});
+
+prueba('W4b. Municipios de destino: solo comunidades soportadas, con sugerencias si es ambiguo', function (): void {
+    $app = appPrueba();
+    [$cookies, $token] = sesionCsrf($app);
+    $envio = fn(array $d) => $app->manejar(peticionPost('/calcular', ['csrf' => $token] + datosCoche($d), $cookies));
+
     foreach (['Las Palmas de Gran Canaria' => 'Canarias', 'Pamplona' => 'Navarra', 'Bilbao' => 'País Vasco', 'Ceuta' => 'Ceuta'] as $texto => $region) {
-        $r = $envio(['enlace' => '', 'municipio_texto' => $texto]);
+        $r = $envio(['municipio' => '', 'municipio_texto' => $texto]);
         Afirmar::igual(422, $r->estado, $texto);
         Afirmar::contiene('De momento no calculamos importaciones para', html_entity_decode($r->cuerpo), $texto);
     }
 
-    $r = $envio(['enlace' => '', 'municipio_texto' => '']);
+    $r = $envio(['municipio' => '', 'municipio_texto' => '']);
     Afirmar::igual(422, $r->estado);
     Afirmar::contiene('Elige el municipio', $r->cuerpo);
 
-    $r = $envio(['enlace' => '', 'municipio_texto' => 'Sala']);
+    $r = $envio(['municipio' => '', 'municipio_texto' => 'Sala']);
     Afirmar::igual(422, $r->estado);
     Afirmar::contiene('Salamanca', $r->cuerpo, 'sugiere municipios parecidos');
-
-    $r = $envio(['enlace' => 'https://suchen.mobile.de/fahrzeuge/details.html?id=345678901', 'municipio_texto' => 'Madrid', 'municipio' => '']);
-    Afirmar::igual(200, $r->estado);
-    Afirmar::contiene('Los datos del coche', $r->cuerpo);
-    Afirmar::contiene('value="28079"', $r->cuerpo);
-    Afirmar::contiene('details.html?id=345678901', $r->cuerpo);
 });
 
 prueba('W5. Camino feliz: se calcula, se guarda y el resultado se puede abrir con su enlace', function (): void {
@@ -134,7 +149,7 @@ prueba('W5. Camino feliz: se calcula, se guarda y el resultado se puede abrir co
     $p = $app->manejar(peticionGet('/c/' . $id));
     Afirmar::igual(200, $p->estado);
     Afirmar::contiene('Volkswagen Golf 2.0 TDI', $p->cuerpo);
-    Afirmar::contiene('Coste total de importarlo', $p->cuerpo);
+    Afirmar::contiene('Coste total estimado', $p->cuerpo);
     Afirmar::contiene('20.571,13', html_entity_decode($p->cuerpo, ENT_QUOTES, 'UTF-8'));
     Afirmar::contiene('Impuesto de matriculación (IEDMT)', $p->cuerpo);
     Afirmar::contiene('Estimación orientativa; confirma con tu gestoría o Hacienda.', $p->cuerpo);
@@ -355,13 +370,15 @@ prueba('W15. Sin precio del BOE se busca la fila sola, se enseña con sus altern
     Afirmar::igual(303, $r->estado, 'se calcula sin escribir el precio del BOE');
     $p = $app->manejar(peticionGet('/c/' . $id));
     Afirmar::igual(200, $p->estado);
-    Afirmar::contiene('Fila del BOE de la que sale el valor venal', $p->cuerpo);
+    Afirmar::contiene('Modelo identificado (base BOE)', $p->cuerpo);
     Afirmar::contiene('GOLF VII 2.0 TDI', $p->cuerpo);
-    Afirmar::contiene('Precio medio de la Orden', $p->cuerpo);
-    Afirmar::contiene('Elegida por nosotros', $p->cuerpo);
+    Afirmar::contiene('Valor de referencia', $p->cuerpo);
+    Afirmar::contiene('Caballos fiscales', $p->cuerpo);
+    Afirmar::contiene('insignia--auto">AUTO<', $p->cuerpo, 'elegida por nosotros');
+    Afirmar::contiene('Otros modelos posibles', $p->cuerpo);
     Afirmar::contiene('name="fila"', $p->cuerpo);
     Afirmar::contiene('/c/' . $id . '/boe', $p->cuerpo);
-    Afirmar::contiene('Total con esta fila', $p->cuerpo);
+    Afirmar::contiene('de coincidencia', $p->cuerpo);
     Afirmar::falso(str_contains($p->cuerpo, 'No calculable (falta el precio medio del BOE)'), 'ya hay valor venal');
     sinInyeccion($p->cuerpo, 'resultado con fila del BOE');
     Afirmar::igual(0, preg_match('/\sstyle="/', $p->cuerpo));
@@ -370,12 +387,12 @@ prueba('W15. Sin precio del BOE se busca la fila sola, se enseña con sus altern
 prueba('W16. Elegir otra fila del BOE crea un cálculo nuevo con el precio de esa fila; una fila de otra marca se rechaza', function (): void {
     [$app, $id, $cookies, $token] = calcularCoche(['boe_precio' => '', 'marca' => 'Volkswagen', 'modelo' => 'Golf VII', 'version' => '2.0 TDI', 'matriculacion' => '03/2019']);
     $original = $app->manejar(peticionGet('/c/' . $id))->cuerpo;
-    preg_match_all('/name="fila" id="boe-(\d+)" value="\d+"( checked)?/', $original, $m, PREG_SET_ORDER);
+    preg_match_all('/<button class="alternativa( alternativa--uso)?" type="submit" name="fila" value="(\d+)"/', $original, $m, PREG_SET_ORDER);
     Afirmar::verdadero(count($m) >= 2, 'al menos dos filas propuestas');
     $enUso = null;
     $otra = null;
     foreach ($m as $f) {
-        isset($f[2]) ? $enUso = (int) $f[1] : $otra ??= (int) $f[1];
+        $f[1] !== '' ? $enUso = (int) $f[2] : $otra ??= (int) $f[2];
     }
     Afirmar::verdadero($enUso !== null && $otra !== null && $enUso !== $otra);
     $r = $app->manejar(peticionPost('/c/' . $id . '/boe', ['csrf' => $token, 'fila' => (string) $otra], $cookies));
@@ -383,9 +400,9 @@ prueba('W16. Elegir otra fila del BOE crea un cálculo nuevo con el precio de es
     preg_match('#^/c/([a-f0-9]{12})$#', $r->cabeceras['Location'], $n);
     Afirmar::verdadero($n[1] !== $id, 'cálculo nuevo; el original no cambia');
     $nuevo = $app->manejar(peticionGet('/c/' . $n[1]))->cuerpo;
-    Afirmar::contiene('Elegida por ti', $nuevo);
-    Afirmar::verdadero(str_contains($nuevo, 'id="boe-' . $otra . '" value="' . $otra . '" checked'), 'la fila elegida queda marcada');
-    Afirmar::contiene('Elegida por nosotros', $app->manejar(peticionGet('/c/' . $id))->cuerpo);
+    Afirmar::contiene('insignia--manual">ELEGIDO<', $nuevo);
+    Afirmar::contiene('alternativa--uso" type="submit" name="fila" value="' . $otra . '"', $nuevo, 'la fila elegida queda marcada');
+    Afirmar::contiene('insignia--auto">AUTO<', $app->manejar(peticionGet('/c/' . $id))->cuerpo);
 
     // Fila de otra marca (la primera de ABARTH es la 1) o inexistente: 422 y no se guarda nada
     foreach (['1', '99999999', 'abc', '', '-3'] as $mala) {
@@ -410,11 +427,37 @@ prueba('W17. Una marca que no está en la Orden o sin modelo avisa y deja el val
 prueba('W18. El precio del BOE escrito a mano manda sobre la búsqueda y se conserva al editar', function (): void {
     [$app, $id] = calcularCoche(['boe_precio' => '30.000']);
     $p = $app->manejar(peticionGet('/c/' . $id))->cuerpo;
-    Afirmar::contiene('Precio escrito por ti', $p);
+    Afirmar::contiene('Precio medio del BOE (indicado por ti)', $p);
+    Afirmar::contiene('insignia--manual">MANUAL<', $p);
     Afirmar::contiene('30.000', $p);
     $editar = $app->manejar(peticionGet('/c/' . $id . '/editar'))->cuerpo;
     Afirmar::contiene('name="boe_precio" value="30000"', $editar);
     // Una fila elegida por el sistema NO se copia al formulario de edición (se vuelve a buscar al recalcular)
     [$app2, $id2] = calcularCoche(['boe_precio' => '', 'marca' => 'Volkswagen', 'modelo' => 'Golf VII', 'version' => '2.0 TDI', 'matriculacion' => '03/2019']);
     Afirmar::contiene('name="boe_precio" value=""', $app2->manejar(peticionGet('/c/' . $id2 . '/editar'))->cuerpo);
+});
+
+prueba('W19. Resultado con tarjetas: título, destino editable, categorías con su desglose y gestoría que se puede quitar', function (): void {
+    [$app, $id, $cookies, $token] = calcularCoche();
+    $p = $app->manejar(peticionGet('/c/' . $id))->cuerpo;
+    Afirmar::contiene('<h1 class="solo-lectores">Coste de importar Volkswagen Golf a Madrid</h1>', $p);
+    Afirmar::contiene('/c/' . $id . '/editar?destino=1#destino', $p, 'el municipio se cambia desde el resultado');
+    Afirmar::contiene('Ver detalles técnicos', $p);
+    foreach (['Precio del vehículo', 'Impuesto de matriculación', 'IVTM', 'Tasas y gestión'] as $categoria) {
+        Afirmar::contiene($categoria, $p, $categoria);
+    }
+    Afirmar::contiene('Incluir la gestoría (200,00', html_entity_decode($p, ENT_QUOTES, 'UTF-8'));
+    Afirmar::verdadero(preg_match('/name="cf_gestoria" value=""\s+checked/', $p) === 1, 'la gestoría empieza incluida');
+    // Cambiar el municipio desde el resultado abre el selector
+    $ed = $app->manejar(new Peticion('GET', '/c/' . $id . '/editar', ['destino' => '1']))->cuerpo;
+    Afirmar::verdadero(preg_match('/<details class="destino[^"]*" id="destino" data-destino open>/', $ed) === 1, 'destino abierto');
+    // Quitar la gestoría: cálculo nuevo, 200 € menos y casilla desmarcada
+    preg_match('/total-banner__importe[^>]*>([\d.]+,\d{2})/u', html_entity_decode($p, ENT_QUOTES, 'UTF-8'), $total);
+    $r = $app->manejar(peticionPost('/c/' . $id . '/costes', ['csrf' => $token, 'cf_gestoria' => '0'], $cookies));
+    Afirmar::igual(303, $r->estado);
+    $nuevo = $app->manejar(peticionGet($r->cabeceras['Location']))->cuerpo;
+    Afirmar::falso(preg_match('/name="cf_gestoria" value=""\s+checked/', $nuevo) === 1, 'la gestoría queda desmarcada');
+    preg_match('/total-banner__importe[^>]*>([\d.]+,\d{2})/u', html_entity_decode($nuevo, ENT_QUOTES, 'UTF-8'), $total2);
+    $aNum = static fn(string $s): float => (float) str_replace(',', '.', str_replace('.', '', $s));
+    Afirmar::igual(200.0, round($aNum($total[1]) - $aNum($total2[1]), 2), 'el total baja lo que costaba la gestoría');
 });

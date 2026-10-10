@@ -164,6 +164,19 @@ final class Valores
         return ['plz' => $m[2], 'ciudad' => $ciudad !== '' ? $ciudad : null, 'pais' => $pais];
     }
 
+    /** Tipo de cambio: «Automatik», «Schaltgetriebe», «manual», «automático»… -> «Automático», «Manual» o «Semiautomático». */
+    public static function cambio(string $t): ?string
+    {
+        $t = mb_strtolower(trim($t), 'UTF-8');
+        return match (true) {
+            $t === '' => null,
+            (bool) preg_match('/halb|semi/u', $t) => 'Semiautomático',
+            (bool) preg_match('/automat|dsg|tiptronic|s-?tronic|cvt/u', $t) => 'Automático',
+            (bool) preg_match('/schalt|manu|stick/u', $t) => 'Manual',
+            default => null,
+        };
+    }
+
     /** Texto corto y limpio para un campo libre (marca, modelo, versión): sin etiquetas, sin control, recortado. */
     public static function textoLibre(string $t, int $max = 80): string
     {

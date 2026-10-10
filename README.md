@@ -1,7 +1,7 @@
 # Calculadora de importación
 
 Coste real de importar a España un coche de mobile.de: precio, impuesto de matriculación (IEDMT), ITP o IVA, IVTM del municipio, tasas de la DGT,
-ITV, gestoría y transporte. Se pega el enlace del anuncio (o el texto copiado de la página), se elige el municipio donde se va a matricular y sale el desglose,
+ITV, gestoría y transporte. Se pega el enlace del anuncio (o el texto copiado de la página), se revisa lo que hemos leído, se elige el municipio donde se va a matricular y sale el total con su desglose por categorías,
 con la **fuente y el cálculo de cada cifra**. Solo web: sin cuentas, sin pagos, sin extensión del navegador, sin APIs externas.
 
 Instalación en una VM: `bash install.sh` (un script con las comprobaciones de seguridad; empieza con `--solo-comprobar`) o, a mano, [`deploy/INSTALL.md`](deploy/INSTALL.md). Actualizar: `git -C /opt/apps/calculadora-importacion pull`.
@@ -155,4 +155,5 @@ y el orden de los datos coinciden.
 Precios medios y depreciación: Orden HAC/1501/2025 (BOE). Tipos, reglas y tasas: BOE, Agencia Tributaria, DGT y haciendas autonómicas y locales (cada valor lo cita en `data/fiscal/`).
 Coordenadas de códigos postales: [GeoNames](https://www.geonames.org/) (CC BY 4.0), a través de [zauberware/postal-codes-json-xml-csv](https://github.com/zauberware/postal-codes-json-xml-csv).
 Municipios y provincias: INE, a través de [codeforspain/ds-organizacion-administrativa](https://github.com/codeforspain/ds-organizacion-administrativa).
+Tipografía [Inter](https://rsms.me/inter/) (licencia SIL OFL 1.1, copia en `public/assets/fonts/LICENSE-Inter-OFL.txt`), servida desde la propia web: no se carga nada de terceros.
 Esta web es independiente y no está afiliada a mobile.de ni a ninguna administración.

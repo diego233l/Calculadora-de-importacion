@@ -17,7 +17,7 @@ final class Analizador
 {
     public const UMBRAL_SEGURO = 0.8;
     /** Campos del formulario que se rellenan y que hacen falta para calcular. */
-    public const CAMPOS = ['marca', 'modelo', 'version', 'matriculacion', 'km', 'combustible', 'cc', 'kw', 'cv', 'co2', 'precio', 'vendedor', 'iva_deducible', 'cp_vendedor'];
+    public const CAMPOS = ['marca', 'modelo', 'version', 'matriculacion', 'km', 'combustible', 'cc', 'kw', 'cv', 'co2', 'precio', 'vendedor', 'iva_deducible', 'cp_vendedor', 'cambio', 'ciudad_vendedor'];
     public const OBLIGATORIOS = ['marca', 'modelo', 'matriculacion', 'km', 'combustible', 'precio', 'vendedor', 'cp_vendedor'];
     private const PRECIO_NO_VALE = '/mtl|monat|rate\b|raten|ab\s+\d|anzahlung|finanz|leasing|netto|zzgl|zuzüglich|uvp|statt|vorher|ersparnis|kosten|\bpro\b|\/\s*mon/iu';
 
@@ -293,6 +293,13 @@ final class Analizador
                     }
                     break;
                 case 'cambio':
+                    if (($v = $primero(Valores::cambio(...))) !== null) {
+                        $c->proponer('cambio', $v, 0.9, 'etiqueta');
+                    }
+                    if (isset($valores[0])) {
+                        $extras['cambio'] = Valores::textoLibre($valores[0], 60);
+                    }
+                    break;
                 case 'estado':
                 case 'propietarios':
                     if (isset($valores[0])) {
@@ -444,6 +451,9 @@ final class Analizador
             return;
         }
         $c->extraer('pais_vendedor', $u['pais']);
+        if ($u['ciudad'] !== null) {
+            $c->proponer('ciudad_vendedor', Valores::textoLibre($u['ciudad'], 40), $conf, $origen);
+        }
         if ($u['pais'] === 'DE') {
             $c->proponer('cp_vendedor', $u['plz'], $conf, $origen);
         } else {

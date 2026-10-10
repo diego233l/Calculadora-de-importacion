@@ -120,8 +120,7 @@ final class App
         $r = new Respuesta();
         $csrf = Csrf::emitir($p, $r, $this->almacen()->secreto());
         $r->cuerpo = Vista::pagina('inicio', [
-            'csrf' => $csrf, 'valores' => ['enlace' => '', 'municipio' => '', 'municipio_texto' => ''],
-            'errores' => [], 'candidatos' => [],
+            'csrf' => $csrf, 'valores' => ['enlace' => '', 'texto_anuncio' => ''], 'errores' => [],
         ], [
             'titulo' => 'Calculadora de importación de coches de mobile.de a España',
             'descripcion' => 'Calcula el coste real de importar a España un coche de mobile.de: impuesto de matriculación, ITP o IVA, IVTM, tasas, gestoría y transporte, con la fuente de cada cifra.',
@@ -131,9 +130,15 @@ final class App
         return $r->conCabecera('Cache-Control', 'no-cache');
     }
 
+    /** Rellenar los datos a mano, sin leer ningún anuncio. */
     private function datosGet(Peticion $p): Respuesta
     {
-        return Respuesta::redirigir('/');
+        $r = new Respuesta();
+        $csrf = Csrf::emitir($p, $r, $this->almacen()->secreto());
+        $v = array_fill_keys(Formulario::CAMPOS, '');
+        $r->cuerpo = $this->paginaDatos($csrf, $v, [], [], $this->tablas());
+        $r->cabeceras['Content-Type'] = 'text/html; charset=utf-8';
+        return $r->conCabecera('Cache-Control', 'no-store');
     }
 
     /** Primer paso: enlace (o texto del anuncio) y municipio. Con ellos se muestra el formulario de datos del coche, ya rellenado. */
@@ -158,19 +163,20 @@ final class App
                 $enlace = '';
             }
         }
-        $m = Municipios::resolver($tablas, Peticion::texto($p->post, 'municipio', 5), Peticion::texto($p->post, 'municipio_texto', 80));
-        if ($m['ine'] === null) {
-            $errores['municipio'] = (string) $m['error'];
+        if ($enlace === '' && $texto === '') {
+            $errores['enlace'] = 'Pega el enlace del anuncio de mobile.de (o, si no funciona, el texto del anuncio).';
         }
+        // El municipio de destino se elige en el paso siguiente; si ya venía elegido (p. ej. al pegar el texto), se conserva
+        $m = Municipios::resolver($tablas, Peticion::texto($p->post, 'municipio', 5), Peticion::texto($p->post, 'municipio_texto', 80));
         $valores = [
             'enlace' => $validado !== null ? $validado['canonica'] : $enlace, 'municipio' => (string) $m['ine'],
-            'municipio_texto' => $m['ine'] !== null ? Municipios::etiqueta($tablas, $m['ine']) : Peticion::texto($p->post, 'municipio_texto', 80),
+            'municipio_texto' => $m['ine'] !== null ? Municipios::etiqueta($tablas, $m['ine']) : '',
         ];
         $r = new Respuesta();
         $csrf = Csrf::emitir($p, $r, $almacen->secreto());
         if ($errores) {
             $r->estado = 422;
-            $r->cuerpo = Vista::pagina('inicio', ['csrf' => $csrf, 'valores' => $valores + ['texto_anuncio' => $texto], 'errores' => $errores, 'candidatos' => $m['candidatos']], [
+            $r->cuerpo = Vista::pagina('inicio', ['csrf' => $csrf, 'valores' => $valores + ['texto_anuncio' => $texto], 'errores' => $errores], [
                 'titulo' => 'Revisa los datos – Calculadora de importación', 'ruta' => '/', 'robots' => 'noindex', 'activa' => 'inicio',
             ]);
         } else {
@@ -233,7 +239,7 @@ final class App
         $tablas = $this->tablas();
         $r = new Respuesta();
         $csrf = Csrf::emitir($p, $r, $almacen->secreto());
-        $r->cuerpo = $this->paginaDatos($csrf, Formulario::valoresDesdeEntrada($calculo['entrada'], $tablas), [], [], $tablas, $id);
+        $r->cuerpo = $this->paginaDatos($csrf, Formulario::valoresDesdeEntrada($calculo['entrada'], $tablas), [], [], $tablas, $id, ['estado' => 'ninguno', 'abrir_destino' => isset($p->consulta['destino'])]);
         $r->cabeceras['Content-Type'] = 'text/html; charset=utf-8';
         return $r->conCabecera('Cache-Control', 'no-store');
     }
@@ -384,6 +390,8 @@ final class App
             'costesDefecto' => $tablas['costes_fijos']['partidas'], 'transporteDefecto' => $tablas['transporte'],
             'resumenJson' => self::resumenParaHistorial($calculo, $titulo, $url),
             'panelBoe' => $this->panelBoe($entrada, $res, $tablas),
+            'coche' => TarjetaCoche::desdeValores(Formulario::valoresDesdeEntrada($entrada, $tablas)),
+            'ajustesActuales' => Formulario::ajustesActuales($entrada, ['gestoria']),
         ], [
             'titulo' => 'Coste de importar ' . ($titulo !== '' ? $titulo : 'tu coche') . ' – Calculadora de importación',
             'ruta' => '/c/' . $calculo['id'], 'robots' => 'noindex', 'activa' => 'inicio', 'clase' => 'pagina-resultado',

@@ -33,6 +33,12 @@ function fecha(string $iso): string
     return Vista::fecha($iso);
 }
 
+/** Icono del sprite de src/Vistas/sprite.php (decorativo: el texto que lo acompaña dice lo mismo). */
+function icono(string $nombre, string $clase = ''): string
+{
+    return '<svg class="icono' . ($clase !== '' ? ' ' . e($clase) : '') . '" aria-hidden="true" focusable="false"><use href="#i-' . e($nombre) . '"/></svg>';
+}
+
 /**
  * Campo de texto accesible: etiqueta enlazada, pista y error asociados con aria-describedby.
  * @param array{pista?: string, modo?: string, auto?: string, obligatorio?: bool, ancho?: string} $op

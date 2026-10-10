@@ -16,7 +16,7 @@ final class Formulario
     public const COSTES = ['tasa_dgt', 'itv_importacion', 'coc_ficha_tecnica', 'placas', 'gestoria', 'matricula_exportacion'];
     public const CAMPOS = [
         'enlace', 'municipio', 'municipio_texto', 'marca', 'modelo', 'version', 'matriculacion', 'km', 'cc', 'cilindros',
-        'kw', 'cv', 'combustible', 'co2', 'precio', 'vendedor', 'iva_deducible', 'cp_vendedor', 'boe_precio',
+        'kw', 'cv', 'combustible', 'co2', 'precio', 'vendedor', 'iva_deducible', 'cp_vendedor', 'boe_precio', 'cambio', 'ciudad_vendedor',
     ];
 
     /**
@@ -55,6 +55,13 @@ final class Formulario
             $v['municipio'] = '';
         }
 
+        // Datos informativos del anuncio (se enseñan en la tarjeta del coche; no intervienen en el cálculo)
+        foreach (['cambio', 'ciudad_vendedor'] as $informativo) {
+            $v[$informativo] = mb_substr(trim(strip_tags($v[$informativo])), 0, 40);
+            if ($v[$informativo] !== '') {
+                $entrada[$informativo] = $v[$informativo];
+            }
+        }
         $entrada['marca'] = $v['marca'];
         $entrada['modelo'] = $v['modelo'];
         $entrada['version'] = $v['version'];
@@ -217,6 +224,38 @@ final class Formulario
         return $v;
     }
 
+    /**
+     * Los ajustes de costes y de transporte que ya están personalizados en una entrada, con los nombres de campo del
+     * formulario de ajustes (cf_gestoria, t_peajes…): sirven para reenviarlos intactos cuando solo se cambia uno.
+     *
+     * @param list<string> $salvo claves de coste que no se incluyen (el que se está cambiando)
+     * @return array<string, string>
+     */
+    public static function ajustesActuales(array $entrada, array $salvo = []): array
+    {
+        $num = static fn($x): string => rtrim(rtrim(number_format((float) $x, 4, '.', ''), '0'), '.');
+        $campos = [];
+        foreach ($entrada['costes_fijos'] ?? [] as $clave => $valor) {
+            if (in_array($clave, self::COSTES, true) && !in_array($clave, $salvo, true) && is_numeric($valor)) {
+                $campos['cf_' . $clave] = $num($valor);
+            }
+        }
+        $t = $entrada['transporte'] ?? [];
+        $mapa = [
+            't_peajes' => 'peajes', 't_billete_vuelta' => 'billete_vuelta', 't_alojamiento' => 'alojamiento', 't_consumo' => 'consumo_por_100km',
+            't_precio_unidad' => 'precio_por_unidad', 't_precio_km' => 'precio_por_km', 't_factor' => 'factor_carretera', 't_velocidad' => 'velocidad_kmh',
+        ];
+        foreach ($mapa as $campo => $clave) {
+            if (isset($t[$clave]) && is_numeric($t[$clave])) {
+                $campos[$campo] = $num($t[$clave]);
+            }
+        }
+        if (isset($t['modo']) && is_string($t['modo'])) {
+            $campos['t_modo'] = $t['modo'];
+        }
+        return $campos;
+    }
+
     /** Valores del formulario de datos a partir de una entrada guardada (para editarla). @return array<string, string> */
     public static function valoresDesdeEntrada(array $entrada, array $tablas): array
     {
@@ -243,6 +282,8 @@ final class Formulario
             'vendedor' => (string) ($entrada['vendedor'] ?? ''),
             'iva_deducible' => !empty($entrada['iva_deducible']) ? '1' : '',
             'cp_vendedor' => (string) ($entrada['cp_vendedor'] ?? ''),
+            'cambio' => (string) ($entrada['cambio'] ?? ''),
+            'ciudad_vendedor' => (string) ($entrada['ciudad_vendedor'] ?? ''),
             // Solo se rellena si el precio lo escribió el usuario; una fila elegida por nosotros se vuelve a buscar al recalcular
             'boe_precio' => ($entrada['boe']['origen'] ?? 'manual') === 'manual' ? $num($entrada['fila_boe']['precio'] ?? null) : '',
         ];
