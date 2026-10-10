@@ -18,8 +18,8 @@ final class ItpIva
     {
         $nuevo = $tablas['iva']['nuevo'];
         $limite = Fechas::sumarMeses($n['fecha_matriculacion'], (int) $nuevo['meses_max']);
-        $porMeses = $n['fecha_calculo'] <= $limite;
-        $porKm = $n['km'] <= (int) $nuevo['km_max'];
+        $porMeses = $n['fecha_calculo'] < $limite;   // «antes de los seis meses siguientes»: el día del sexto mes ya no cuenta
+        $porKm = $n['km'] <= (int) $nuevo['km_max'];   // «no hayan recorrido más de 6.000 km»
         return [
             'nuevo' => $porMeses || $porKm,
             'por_meses' => $porMeses,
@@ -32,7 +32,7 @@ final class ItpIva
     public static function precioNeto(array $n, array $tablas, bool $nuevo): float
     {
         if ($nuevo && $n['vendedor'] === 'profesional' && $n['iva_deducible']) {
-            $ivaDe = (float) $tablas['iva']['tipo_iva_alemania'];
+            $ivaDe = (float) $tablas['iva']['iva_alemania']['valor'];
             return Dinero::redondear($n['precio'] / (1 + $ivaDe / 100));
         }
         return $n['precio'];
@@ -62,7 +62,7 @@ final class ItpIva
         $importe = Dinero::redondear($base * $tipo / 100);
         $nombre = $canarias ? 'IGIC (Canarias)' : 'IVA español (modelo 309)';
         $origen = $n['vendedor'] === 'profesional' && $n['iva_deducible']
-            ? 'precio del anuncio sin el ' . Partida::num((float) $iva['tipo_iva_alemania']) . ' % de IVA alemán'
+            ? 'precio del anuncio sin el ' . Partida::num((float) $iva['iva_alemania']['valor']) . ' % de IVA alemán'
             : 'precio del anuncio';
         $explicacion = sprintf(
             'Medio de transporte nuevo (%s): el impuesto se paga en España, no en Alemania. Base: %s (%s). %s x %s %% = %s.',

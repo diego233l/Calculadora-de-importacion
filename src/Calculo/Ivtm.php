@@ -17,7 +17,7 @@ final class Ivtm
     {
         $tar = $tablas['ivtm_tarifas'];
         $concepto = 'IVTM (impuesto de circulación)';
-        $verificar = Partida::pendiente($tar);
+        $verificar = Partida::pendiente($tar, $tar['prorrateo'] ?? null);
         $url = $tar['url'] ?? null;
 
         if ($cvf === null) {
@@ -59,6 +59,15 @@ final class Ivtm
             $avisos[] = Partida::aviso(
                 'ivtm_foral',
                 'En País Vasco y Navarra el IVTM tiene tarifas forales propias: el cuadro estatal es solo orientativo.'
+            );
+        }
+
+        if (in_array($n['combustible'], ['electrico', 'hibrido', 'phev'], true)) {
+            $avisos[] = Partida::aviso(
+                'ivtm_bonificacion',
+                'Muchos ayuntamientos bonifican el IVTM de los coches eléctricos e híbridos (la ley permite hasta un 75 %). '
+                . 'Consulta la ordenanza de tu municipio: la cuota real puede ser menor.',
+                'info'
             );
         }
 

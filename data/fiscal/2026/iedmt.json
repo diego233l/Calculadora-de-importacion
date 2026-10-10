@@ -1,43 +1,87 @@
 {
   "anio": 2026,
-  "fuente": "Ley 38/1992 de Impuestos Especiales, art. 70.1 (tipos por emisiones oficiales de CO2, ciclo WLTP) y arts. 69-70 (base imponible)",
+  "fuente": "Ley 38/1992 de Impuestos Especiales: art. 65.2.b (nuevo/usado), art. 69 (base imponible), art. 70 (epígrafes y tipos) y Orden HAC/1501/2025, art. 5 (regla segunda)",
   "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1992-28741",
-  "verificar": true,
-  "verificar_motivo": "Tipos estatales de la especificación del proyecto y de fuentes secundarias. Pendiente de confirmar en el texto consolidado: (1) si 160 y 200 g/km pertenecen al tramo superior (la ley habla de 'iguales o superiores a'), (2) tipos de Canarias, (3) tipos autonómicos.",
+  "verificar": false,
   "aviso_co2_nedc_antes_de": "2019-01-01",
   "regimenes": {
     "peninsula_baleares": {
-      "fuente": "Ley 38/1992, art. 70.1, epígrafes 1.º a 4.º",
-      "verificar": true,
+      "fuente": "Ley 38/1992, art. 70.1 y 70.2.b: epígrafes 1.º (hasta 120 g/km o motor no de combustión), 2.º (más de 120 y menos de 160), 3.º (160 o más y menos de 200) y 4.º (200 o más)",
+      "verificar": false,
       "tramos": [
-        {"desde": 0, "desde_inclusivo": true, "tipo": 0.0},
-        {"desde": 120, "desde_inclusivo": false, "tipo": 4.75},
-        {"desde": 160, "desde_inclusivo": true, "tipo": 9.75},
-        {"desde": 200, "desde_inclusivo": true, "tipo": 14.75}
-      ]
+        {
+          "desde": 0,
+          "desde_inclusivo": true,
+          "tipo": 0.0
+        },
+        {
+          "desde": 120,
+          "desde_inclusivo": false,
+          "tipo": 4.75
+        },
+        {
+          "desde": 160,
+          "desde_inclusivo": true,
+          "tipo": 9.75
+        },
+        {
+          "desde": 200,
+          "desde_inclusivo": true,
+          "tipo": 14.75
+        }
+      ],
+      "tipo_si_co2_no_acreditado": {
+        "tipo": 14.75,
+        "fuente": "Art. 70.1, epígrafe 4.º b): vehículos cuyo CO2 se debe medir y no se acredita",
+        "verificar": false
+      }
     },
     "canarias": {
-      "fuente": "Ley 38/1992, art. 70.1 (tipos reducidos para Canarias)",
-      "verificar": true,
+      "fuente": "Ley 38/1992, art. 70.2.b (columna Canarias): 0 %, 3,75 %, 8,75 % y 13,75 %",
+      "verificar": false,
       "tramos": [
-        {"desde": 0, "desde_inclusivo": true, "tipo": 0.0},
-        {"desde": 120, "desde_inclusivo": false, "tipo": 3.75},
-        {"desde": 160, "desde_inclusivo": true, "tipo": 8.75},
-        {"desde": 200, "desde_inclusivo": true, "tipo": 13.75}
-      ]
+        {
+          "desde": 0,
+          "desde_inclusivo": true,
+          "tipo": 0.0
+        },
+        {
+          "desde": 120,
+          "desde_inclusivo": false,
+          "tipo": 3.75
+        },
+        {
+          "desde": 160,
+          "desde_inclusivo": true,
+          "tipo": 8.75
+        },
+        {
+          "desde": 200,
+          "desde_inclusivo": true,
+          "tipo": 13.75
+        }
+      ],
+      "tipo_si_co2_no_acreditado": {
+        "tipo": 13.75,
+        "fuente": "Art. 70.1, epígrafe 4.º b) con el tipo de Canarias",
+        "verificar": false
+      }
     }
   },
   "base_imponible_usados_extranjero": {
-    "fuente": "Orden HAC/1501/2025, regla segunda: minoración de la imposición indirecta soportada para medios de transporte usados matriculados previamente en el extranjero",
+    "fuente": "Ley 38/1992, art. 69.b (minoración del importe residual de los impuestos indirectos) y Orden HAC/1501/2025, art. 5, regla segunda (fórmula BI = VM / (1 + (tipoIVA + tipoiEDMT + tiposOTROS)))",
     "url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26357",
-    "verificar": true,
-    "verificar_motivo": "La fórmula BI = VM / (1 + (tipo IVA + tipo IEDMT + otros tipos)) figura en las ediciones de 2019 a 2024 de la orden. Para 2026 la orden dice que mantiene el mecanismo, pero no se ha podido leer su texto literal. CONFIRMAR antes de dar la cifra por buena.",
+    "verificar": false,
     "activa": true,
     "formula": "BI = VM / (1 + (tipo_iva + tipo_iedmt + tipos_otros) / 100)",
-    "tipos_otros": 0.0
+    "tipos_otros": 0.0,
+    "limitaciones": [
+      "tipoIVA y tipoiEDMT son los «exigibles en el momento de la primera matriculación»: el motor usa los vigentes hoy. Es indistinto salvo en coches matriculados antes de septiembre de 2012 (IVA del 16 % o 18 %) o con otros tipos de IEDMT históricos.",
+      "En Canarias se usa el IGIC en lugar del IVA (sin verificar)."
+    ]
   },
   "incrementos_autonomicos": {
-    "fuente": "Ley 38/1992, art. 70.1 (las CCAA pueden incrementar los tipos hasta un 15 %)",
+    "fuente": "Ley 38/1992, art. 70.2.a: rigen los tipos aprobados por la comunidad autónoma (art. 43 de la Ley 21/2001); si no los aprobó, los estatales del art. 70.2.b",
     "verificar": true,
     "efectivos": {},
     "candidatos_sin_verificar": {
@@ -50,5 +94,6 @@
       "CB": "Fuentes en conflicto: 15 % en el tramo superior u otros tipos"
     },
     "nota": "Mientras 'efectivos' esté vacío el motor aplica los tipos estatales y avisa si la CCAA figura en 'candidatos_sin_verificar'."
-  }
+  },
+  "verificado": "Contrastado con el texto consolidado de la Ley 38/1992 (BOE) y con la Orden HAC/1501/2025 el 10/10/2026."
 }

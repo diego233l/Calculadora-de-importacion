@@ -1,23 +1,48 @@
 {
   "anio": 2026,
-  "fuente": "Real Decreto Legislativo 2/2004 (TRLRHL), art. 95.1: cuadro de tarifas del IVTM para turismos; art. 95.4: coeficiente municipal; art. 96.3: prorrateo por trimestres",
+  "fuente": "Real Decreto Legislativo 2/2004 (TRLRHL): art. 95.1 (cuadro de tarifas), art. 95.4 (coeficiente municipal, máximo 2) y art. 96.3 (prorrateo por trimestres naturales)",
   "url": "https://www.boe.es/buscar/act.php?id=BOE-A-2004-4214",
-  "verificar": true,
-  "verificar_motivo": "El 12,62 € del primer tramo se ha contrastado de forma indirecta con una ordenanza municipal; el resto de cuotas, de memoria. Comprobar el cuadro en el texto consolidado. En País Vasco y Navarra rigen tarifas forales propias.",
+  "verificar": false,
   "coeficiente_minimo": 1.0,
   "coeficiente_maximo": 2.0,
   "turismos": [
-    {"cvf_desde": 0, "cuota": 12.62},
-    {"cvf_desde": 8, "cuota": 34.08},
-    {"cvf_desde": 12, "cuota": 71.94},
-    {"cvf_desde": 16, "cuota": 89.61},
-    {"cvf_desde": 20, "cuota": 112.00}
+    {
+      "cvf_desde": 0,
+      "cuota": 12.62
+    },
+    {
+      "cvf_desde": 8,
+      "cuota": 34.08
+    },
+    {
+      "cvf_desde": 12,
+      "cuota": 71.94
+    },
+    {
+      "cvf_desde": 16,
+      "cuota": 89.61
+    },
+    {
+      "cvf_desde": 20,
+      "cuota": 112.0
+    }
   ],
   "formulas_cvf": {
-    "fuente": "Reglamento General de Vehículos (RD 2822/1998), anexo V; fórmula de caballos fiscales para motores de cuatro tiempos; eléctricos según la especificación del proyecto",
+    "fuente": "Reglamento General de Vehículos (RD 2822/1998), anexo V: motores de cuatro tiempos CVF = 0,08 · (0,785 · D² · R)^0,6 · N; eléctricos y rotativos CVF = Pe / 5,152; resultado «con dos cifras decimales aproximada por defecto»",
+    "verificar": false,
+    "combustion": {
+      "coeficiente": 0.08,
+      "exponente": 0.6
+    },
+    "electrico_divisor_kw": 5.152,
+    "redondeo": "por_defecto_2_decimales",
+    "nota": "El motor usa cc / cilindros en lugar de 0,785·D²·R (equivalentes: ambos son el volumen de un cilindro). Si la fila del BOE trae el CVF, se usa ese."
+  },
+  "verificado": "Contrastado con el texto consolidado del TRLRHL (BOE) el 10/10/2026.",
+  "nota_foral": "En País Vasco y Navarra rigen tarifas forales propias: el cuadro estatal es orientativo.",
+  "prorrateo": {
+    "fuente": "TRLRHL, art. 96.3: «se prorrateará por trimestres naturales» en la primera adquisición",
     "verificar": true,
-    "verificar_motivo": "La fórmula de eléctricos (kW / 5,152) viene de la especificación del proyecto; comprobar la norma de origen.",
-    "combustion": {"coeficiente": 0.08, "exponente": 0.6},
-    "electrico_divisor_kw": 5.152
+    "verificar_motivo": "La ley no dice si el trimestre de la matriculación cuenta entero; la práctica de las ordenanzas es que sí. Confirmar en la ordenanza de cada municipio."
   }
 }

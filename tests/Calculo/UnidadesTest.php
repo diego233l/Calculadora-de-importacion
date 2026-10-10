@@ -26,22 +26,31 @@ prueba('U1. IEDMT: fronteras de los tramos de CO2 (120, 160 y 200 g/km)', functi
     Afirmar::igual(15.0, Iedmt::tipoPorCo2($tramos, 350.0));
 });
 
-prueba('U2. Depreciación: se usan años COMPLETOS y cada tramo empieza el día del aniversario', function (): void {
+prueba('U2. Depreciación (anexo IV): «hasta N años» incluye el día del aniversario', function (): void {
     $caso = function (string $matriculacion): array {
         $n = Entrada::normalizar(entradaBase(['fecha_matriculacion' => $matriculacion]), tablasPrueba());
         return ValorVenal::calcular($n, tablasPrueba());
     };
-    // Fecha de cálculo: 10/10/2026
-    Afirmar::igual(1.00, $caso('2025-10-11')['coeficiente']);   // 11 meses y 29 días: 0 años
-    Afirmar::igual(0.80, $caso('2025-10-10')['coeficiente']);   // exactamente 1 año
-    Afirmar::igual(0.60, $caso('2024-10-10')['coeficiente']);   // 2 años
-    Afirmar::igual(0.50, $caso('2023-10-10')['coeficiente']);   // 3 años
-    Afirmar::igual(0.50, $caso('2022-10-11')['coeficiente']);   // 3 años y 364 días: sigue en el tramo de 3
-    Afirmar::igual(0.40, $caso('2021-10-10')['coeficiente']);   // 5 años
-    Afirmar::igual(0.40, $caso('2016-10-11')['coeficiente']);   // 9 años y 364 días
-    Afirmar::igual(0.20, $caso('2016-10-10')['coeficiente']);   // 10 años
+    // Fecha de cálculo: 10/10/2026. Tramos de prueba: hasta 1 año 100 %, hasta 2 80 %, hasta 3 60 %,
+    // hasta 5 50 %, hasta 10 40 %, más de 10 20 %.
+    Afirmar::igual(1.00, $caso('2025-10-11')['coeficiente']);   // 11 meses y 29 días
+    Afirmar::igual(1.00, $caso('2025-10-10')['coeficiente']);   // exactamente 1 año: «hasta 1 año» todavía es 100 %
+    Afirmar::igual(0.80, $caso('2025-10-09')['coeficiente']);   // 1 año y 1 día: «más de 1 año, hasta 2»
+    Afirmar::igual(0.80, $caso('2024-10-10')['coeficiente']);   // exactamente 2 años
+    Afirmar::igual(0.60, $caso('2024-10-09')['coeficiente']);
+    Afirmar::igual(0.60, $caso('2023-10-10')['coeficiente']);   // exactamente 3 años
+    Afirmar::igual(0.50, $caso('2023-10-09')['coeficiente']);   // 3 años y 1 día: ya «hasta 5»
+    Afirmar::igual(0.50, $caso('2021-10-10')['coeficiente']);   // exactamente 5 años
+    Afirmar::igual(0.40, $caso('2021-10-09')['coeficiente']);
+    Afirmar::igual(0.40, $caso('2016-10-10')['coeficiente']);   // exactamente 10 años
+    Afirmar::igual(0.20, $caso('2016-10-09')['coeficiente']);   // más de 10 años
     Afirmar::igual(0.20, $caso('1990-01-01')['coeficiente']);   // muy antiguo: el último tramo
     Afirmar::igual(36, $caso('1990-01-01')['antiguedad_anios']);
+    // Año bisiesto: 29/02/2020 + 1 año = 28/02/2021
+    $bis = fn(string $calculo) => ValorVenal::coeficiente(tablasPrueba()['depreciacion']['tramos'],
+        Fechas::parsear('2020-02-29'), Fechas::parsear($calculo));
+    Afirmar::igual(1.00, $bis('2021-02-28'));
+    Afirmar::igual(0.80, $bis('2021-03-01'));
 });
 
 prueba('U3. Caballos fiscales: fórmula de combustión, eléctricos y CVF del BOE', function (): void {
@@ -49,13 +58,14 @@ prueba('U3. Caballos fiscales: fórmula de combustión, eléctricos y CVF del BO
         $n = Entrada::normalizar(entradaBase($cambios), tablasPrueba());
         return CaballosFiscales::calcular($n, tablasPrueba());
     };
-    // 0,08 x (cc/cilindros)^0,6 x cilindros, redondeado a 2 decimales
-    Afirmar::euros(13.31, $cvf(['cc' => 1998, 'cilindros' => 4])['cvf']);
+    // 0,08 x (cc/cilindros)^0,6 x cilindros, con dos decimales «aproximada por defecto» (se trunca, no se redondea)
+    Afirmar::euros(13.31, $cvf(['cc' => 1998, 'cilindros' => 4])['cvf']);   // 13,31286
+    Afirmar::euros(12.49, $cvf(['cc' => 1798, 'cilindros' => 4])['cvf']);   // 12,49648: redondeando saldría 12,50
     Afirmar::euros(7.83, $cvf(['cc' => 1000, 'cilindros' => 3])['cvf']);
     Afirmar::euros(17.91, $cvf(['cc' => 2500, 'cilindros' => 6])['cvf']);
     // Eléctricos: kW / 5,152
-    Afirmar::euros(19.41, $cvf(['combustible' => 'electrico', 'kw' => 100, 'cc' => null, 'cilindros' => null])['cvf']);
-    Afirmar::euros(11.65, $cvf(['combustible' => 'electrico', 'kw' => 60, 'cc' => null, 'cilindros' => null])['cvf']);
+    Afirmar::euros(19.40, $cvf(['combustible' => 'electrico', 'kw' => 100, 'cc' => null, 'cilindros' => null])['cvf']);   // 19,40994
+    Afirmar::euros(11.64, $cvf(['combustible' => 'electrico', 'kw' => 60, 'cc' => null, 'cilindros' => null])['cvf']);    // 11,64596
     // El CVF de la fila del BOE manda sobre la fórmula
     $boe = $cvf(['fila_boe' => ['precio' => 20000, 'cvf' => 14.5]]);
     Afirmar::euros(14.5, $boe['cvf']);
@@ -85,10 +95,11 @@ prueba('U5. Medio de transporte nuevo: 6 meses O 6.000 km, con sus fronteras', f
         $n = Entrada::normalizar(entradaBase(['fecha_matriculacion' => $matriculacion, 'km' => $km, 'fecha_calculo' => $calculo]), tablasPrueba());
         return ItpIva::clasificar($n, tablasPrueba());
     };
-    // 10/04/2026 + 6 meses = 10/10/2026: el último día todavía cuenta como nuevo
-    Afirmar::verdadero($nuevo('2026-04-10', 20000)['nuevo']);
+    // «Antes de los seis meses siguientes» (art. 13 LIVA): 10/04/2026 + 6 meses = 10/10/2026 ya NO cuenta
+    Afirmar::verdadero($nuevo('2026-04-11', 20000)['nuevo']);
+    Afirmar::falso($nuevo('2026-04-10', 20000)['nuevo'], 'el día del sexto mes ya no es nuevo por antigüedad');
     Afirmar::falso($nuevo('2026-04-09', 20000)['nuevo']);
-    Afirmar::verdadero($nuevo('2024-01-01', 6000)['nuevo'], '6.000 km exactos');
+    Afirmar::verdadero($nuevo('2024-01-01', 6000)['nuevo'], '6.000 km exactos: «no hayan recorrido más de 6.000»');
     Afirmar::falso($nuevo('2024-01-01', 6001)['nuevo']);
     Afirmar::verdadero($nuevo('2024-01-01', 0)['nuevo'], 'cero km aunque sea antiguo');
     Afirmar::igual('2026-12-30', $nuevo('2026-06-30', 90000, '2026-10-10')['fecha_limite_meses']);   // 30/06 + 6 meses

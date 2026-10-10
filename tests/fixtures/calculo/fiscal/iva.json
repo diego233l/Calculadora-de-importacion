@@ -4,10 +4,18 @@
   "url": "https://example.invalid/prueba",
   "verificar": false,
   "tipo_iva_es": 20.0,
-  "tipo_igic_canarias": 5.0,
-  "tipo_iva_alemania": 10.0,
   "nuevo": {
     "meses_max": 6,
     "km_max": 6000
+  },
+  "igic": {
+    "valor": 5.0,
+    "fuente": "prueba",
+    "verificar": false
+  },
+  "iva_alemania": {
+    "valor": 10.0,
+    "fuente": "prueba",
+    "verificar": false
   }
 }

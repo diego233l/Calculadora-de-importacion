@@ -63,7 +63,7 @@ prueba('3. Eléctrico usado de particular: IEDMT 0 %, CVF por kW', function (): 
     // Antigüedad: 01/09/2023 -> 10/10/2026 = 3 años -> 50 %. Valor venal: 40.000 x 50 % = 20.000.
     // IEDMT: eléctrico = 0 %. Base = 20.000 / 1,20 = 16.666,67. Cuota = 0.
     // ITP Madrid 4 %: 800.
-    // CVF = 100 kW / 5,152 = 19,41 -> tarifa 90 x coef 2 = 180 al año -> 1 trimestre = 45.
+    // CVF = 100 kW / 5,152 = 19,40 (truncado) -> tarifa 90 x coef 2 = 180 al año -> 1 trimestre = 45.
     // Transporte: 1.389,9366 km x 20 kWh/100 x 0,30 = 83,40.
     // Total: 25.000 + 0 + 800 + 45 + 500 + 83,40 = 26.428,40.
     $r = Calculadora::calcular(entradaBase([
@@ -73,7 +73,7 @@ prueba('3. Eléctrico usado de particular: IEDMT 0 %, CVF por kW', function (): 
     Afirmar::euros(0, partida($r, 'iedmt')['importe']);
     Afirmar::euros(16666.67, partida($r, 'iedmt')['base']);
     Afirmar::euros(800, partida($r, 'itp_iva')['importe']);
-    Afirmar::euros(19.41, $r['derivados']['cvf']);
+    Afirmar::euros(19.40, $r['derivados']['cvf']);
     Afirmar::euros(45, partida($r, 'ivtm')['importe']);
     Afirmar::euros(83.40, partida($r, 'transporte')['importe']);
     Afirmar::euros(26428.40, $r['total']);
@@ -83,7 +83,7 @@ prueba('4. Híbrido usado de particular: CVF con la cilindrada del motor térmic
     // Antigüedad: 10/02/2024 -> 2 años -> 60 %. Valor venal: 30.000 x 60 % = 18.000.
     // IEDMT: 110 g/km -> 0 %. Base = 18.000 / 1,20 = 15.000. Cuota = 0.
     // ITP Madrid 4 %: 720.
-    // CVF = 0,08 x (1.798/4)^0,6 x 4 = 12,50 -> tarifa 70 x 2 = 140 -> 35.
+    // CVF = 0,08 x (1.798/4)^0,6 x 4 = 12,49 (truncado) -> tarifa 70 x 2 = 140 -> 35.
     // Transporte híbrido: 1.389,9366 x 5/100 x 1,50 = 104,25.
     // Total: 21.000 + 0 + 720 + 35 + 500 + 104,25 = 22.359,25.
     $r = Calculadora::calcular(entradaBase([
@@ -94,7 +94,7 @@ prueba('4. Híbrido usado de particular: CVF con la cilindrada del motor térmic
     Afirmar::euros(0, partida($r, 'iedmt')['importe']);
     Afirmar::euros(15000, partida($r, 'iedmt')['base']);
     Afirmar::euros(720, partida($r, 'itp_iva')['importe']);
-    Afirmar::euros(12.5, $r['derivados']['cvf']);
+    Afirmar::euros(12.49, $r['derivados']['cvf']);
     Afirmar::euros(104.25, partida($r, 'transporte')['importe']);
     Afirmar::euros(22359.25, $r['total']);
 });
@@ -122,7 +122,7 @@ prueba('6. Nuevo por antigüedad (< 6 meses) de profesional con IVA desglosable:
     // 15/06/2026 -> 10/10/2026: 3 meses -> nuevo, aunque tenga 12.000 km. Precio 33.000 con 10 % de IVA alemán
     //   -> neto 33.000 / 1,10 = 30.000 (lo que se paga al vendedor).
     // IVA español: 30.000 x 20 % = 6.000. IEDMT (nuevo: sobre el precio neto, sin minoración): 150 g/km -> 5 % = 1.500.
-    // CVF = 0,08 x (1.500/4)^0,6 x 4 = 11,21 -> tarifa 30 x 2 = 60 -> 15.
+    // CVF = 0,08 x (1.500/4)^0,6 x 4 = 11,20 (truncado) -> tarifa 30 x 2 = 60 -> 15.
     // Transporte gasolina: 145,94.
     // Total: 30.000 + 1.500 + 6.000 + 15 + 500 + 145,94 = 38.160,94.
     $r = Calculadora::calcular(entradaBase([
@@ -143,7 +143,7 @@ prueba('7. Nuevo por kilómetros (5.500 km) con casi dos años: IVA sobre el pre
     // 10/01/2025 -> 21 meses (no es nuevo por tiempo) pero 5.500 km <= 6.000 -> nuevo.
     // Particular: sin IVA alemán, la base es el precio: 20.000 x 20 % = 4.000.
     // IEDMT: 190 g/km -> 10 %, base 20.000 -> 2.000.
-    // CVF = 0,08 x (1.332/4)^0,6 x 4 = 10,44 -> tarifa 30 x 2 = 60 -> 15.
+    // CVF = 0,08 x (1.332/4)^0,6 x 4 = 10,43 (truncado) -> tarifa 30 x 2 = 60 -> 15.
     // Total: 20.000 + 2.000 + 4.000 + 15 + 500 + 145,94 = 26.660,94.
     $r = Calculadora::calcular(entradaBase([
         'fecha_matriculacion' => '2025-01-10', 'km' => 5500, 'cc' => 1332, 'co2_wltp' => 190,
@@ -196,7 +196,7 @@ prueba('9. Canarias: IEDMT con tipos canarios, IGIC en la minoración, ITP canar
 
 prueba('10. ITP de una comunidad con tipos por caballos fiscales (Comunitat Valenciana)', function (): void {
     // Valor venal 13.000. CVF >= 15 -> 10 %; si no, 8 % general.
-    // 2.500 cm³ y 6 cilindros -> CVF 17,91 -> 10 % -> 1.300. 1.500 cm³ y 4 cilindros -> CVF 11,21 -> 8 % -> 1.040.
+    // 2.500 cm³ y 6 cilindros -> CVF 17,91 -> 10 % -> 1.300. 1.500 cm³ y 4 cilindros -> CVF 11,20 -> 8 % -> 1.040.
     $grande = Calculadora::calcular(entradaBase(['municipio' => '46900', 'cc' => 2500, 'cilindros' => 6]), tablasPrueba());
     Afirmar::euros(17.91, $grande['derivados']['cvf']);
     Afirmar::euros(1300, partida($grande, 'itp_iva')['importe']);

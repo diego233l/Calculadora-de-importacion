@@ -1,16 +1,27 @@
 {
   "anio": 2026,
-  "fuente": "Ley 37/1992 del IVA, arts. 13.2.º y 25 (medios de transporte nuevos y adquisiciones intracomunitarias)",
+  "fuente": "Ley 37/1992 del IVA: art. 13 (medios de transporte nuevos) y art. 90 (tipo general del 21 %)",
   "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1992-28740",
-  "verificar": true,
-  "verificar_motivo": "Umbrales de 'medio de transporte nuevo' (6 meses o 6.000 km) tomados de la especificación del proyecto; comprobar el texto del art. 13.2.º b) y si el límite de km es 'más de' o 'menos de' 6.000. Tipo de Canarias: IGIC general.",
+  "verificar": false,
   "tipo_iva_es": 21.0,
-  "tipo_igic_canarias": 7.0,
-  "tipo_iva_alemania": 19.0,
   "nuevo": {
     "meses_max": 6,
     "km_max": 6000,
-    "criterio": "Es 'nuevo' si NO han pasado más de meses_max meses desde la primera matriculación O si tiene km_max km o menos."
+    "criterio": "Un turismo es 'nuevo' si su entrega se efectúa ANTES de los seis meses siguientes a la primera puesta en servicio, O si no ha recorrido más de 6.000 km (art. 13, vehículos terrestres a motor de más de 48 cm³ o 7,2 kW). La Ley 38/1992, art. 65.2.b, aplica la misma definición al IEDMT.",
+    "verificar": false,
+    "fuente": "Ley 37/1992, art. 13 (consolidado)"
   },
-  "modelo": "309"
+  "modelo": "309",
+  "igic": {
+    "valor": 7.0,
+    "fuente": "Ley 20/1991, REF de Canarias: tipo general del IGIC",
+    "verificar": true,
+    "verificar_motivo": "Pendiente de contrastar en la Ley 20/1991 (art. 51) y en la Ley de presupuestos canaria vigente."
+  },
+  "iva_alemania": {
+    "valor": 19.0,
+    "fuente": "UStG alemana, § 12 Abs. 1 (tipo general del 19 %)",
+    "verificar": true,
+    "verificar_motivo": "No es norma española; contrastar en gesetze-im-internet.de/ustg_1980/__12.html."
+  }
 }

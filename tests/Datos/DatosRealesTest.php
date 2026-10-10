@@ -82,16 +82,20 @@ prueba('D4. Toda comunidad soportada tiene fila de ITP y régimen de IEDMT exist
     }
 });
 
-prueba('D5. Los tramos fiscales están ordenados y cubren desde 0', function (): void {
+prueba('D5. Anexo IV de la Orden HAC/1501/2025: los 13 porcentajes oficiales y tramos bien ordenados', function (): void {
     $d = jsonReal(dataDir() . '/fiscal/2026/depreciacion.json');
-    Afirmar::igual(0, $d['tramos'][0]['desde_anios']);
-    $anterior = -1;
-    $coefAnterior = 2.0;
-    foreach ($d['tramos'] as $t) {
-        Afirmar::verdadero($t['desde_anios'] > $anterior, 'años desordenados');
-        Afirmar::verdadero($t['coeficiente'] <= $coefAnterior && $t['coeficiente'] > 0 && $t['coeficiente'] <= 1.0, 'la depreciación debe ser decreciente');
-        $anterior = $t['desde_anios'];
-        $coefAnterior = $t['coeficiente'];
+    // Texto del anexo IV (BOE de 23/12/2025, turismos): hasta 1 año 100, hasta 2 84, ... más de 12 años 10
+    $oficial = [100, 84, 67, 56, 47, 39, 34, 28, 24, 19, 17, 13, 10];
+    Afirmar::igual(count($oficial), count($d['tramos']));
+    $anterior = 0;
+    foreach ($d['tramos'] as $i => $t) {
+        Afirmar::igual($oficial[$i], (int) round($t['coeficiente'] * 100), 'tramo ' . ($i + 1));
+        if ($t['hasta_anios'] !== null) {
+            Afirmar::igual($anterior + 1, $t['hasta_anios'], 'los tramos avanzan de año en año');
+            $anterior = $t['hasta_anios'];
+        } else {
+            Afirmar::igual($i, count($d['tramos']) - 1, 'solo el último tramo (más de 12 años) no tiene límite');
+        }
     }
     $i = jsonReal(dataDir() . '/fiscal/2026/iedmt.json');
     foreach ($i['regimenes'] as $nombre => $r) {
@@ -100,6 +104,9 @@ prueba('D5. Los tramos fiscales están ordenados y cubren desde 0', function ():
     }
     $v = jsonReal(dataDir() . '/fiscal/2026/ivtm_tarifas.json');
     Afirmar::igual(0, $v['turismos'][0]['cvf_desde']);
+    // Art. 95.1 TRLRHL: 12,62 / 34,08 / 71,94 / 89,61 / 112,00 a partir de 0, 8, 12, 16 y 20 CVF
+    Afirmar::igual([[0, 12.62], [8, 34.08], [12, 71.94], [16, 89.61], [20, 112.0]],
+        array_map(fn($t) => [$t['cvf_desde'], $t['cuota']], $v['turismos']));
 });
 
 prueba('D6. Los municipios del IVTM existen en municipios_es.json', function (): void {

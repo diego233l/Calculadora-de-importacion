@@ -32,6 +32,7 @@ final class Iedmt
 
         if (array_key_exists($n['ccaa'], $t['incrementos_autonomicos']['candidatos_sin_verificar'] ?? [])
             && !array_key_exists($n['ccaa'], $t['incrementos_autonomicos']['efectivos'] ?? [])) {
+            $verificar = true;
             $avisos[] = Partida::aviso(
                 'iedmt_incremento_autonomico',
                 'Esta comunidad autónoma podría aplicar un tipo de matriculación superior al estatal (hasta un 15 % más). '
@@ -44,7 +45,10 @@ final class Iedmt
         } elseif ($n['co2_wltp'] === null) {
             return [
                 'partidas' => [Partida::noCalculable('iedmt', $concepto,
-                    'Falta el dato de emisiones de CO2 (WLTP): sin él no se puede determinar el tipo del impuesto.', $fuente, $verificar, $url)],
+                    'Falta el dato de emisiones de CO2 (WLTP): sin él no se puede determinar el tipo del impuesto. '
+                    . 'Si el CO2 no se acredita con el certificado del fabricante, la ley aplica el tipo más alto ('
+                    . Partida::num(max(array_column($nodoRegimen['tramos'], 'tipo'))) . ' %, art. 70.1, epígrafe 4.º b).',
+                    $fuente, $verificar, $url)],
                 'avisos' => $avisos,
                 'tipo' => null,
             ];

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace CalculadoraImportacion\Calculo;
 
 /**
- * Caballos fiscales (CVF). Orden de preferencia:
+ * Caballos fiscales (CVF), anexo V del Reglamento General de Vehículos (RD 2822/1998). Orden de preferencia:
  *   1. el CVF que trae la fila del BOE;
  *   2. eléctricos: kW / 5,152;
- *   3. resto (motor de cuatro tiempos; en híbridos, el térmico): 0,08 x (cc / cilindros)^0,6 x cilindros.
+ *   3. resto (motor de cuatro tiempos; en híbridos, el térmico): 0,08 x (cc / cilindros)^0,6 x cilindros,
+ *      donde cc / cilindros equivale al 0,785 x D² x R de la norma (volumen de un cilindro).
  */
 final class CaballosFiscales
 {
@@ -29,7 +30,7 @@ final class CaballosFiscales
                 return self::falta('Faltan los kW del motor eléctrico para calcular los caballos fiscales.', $verificar);
             }
             $div = (float) $f['electrico_divisor_kw'];
-            $cvf = round($n['kw'] / $div, 2);
+            $cvf = self::truncar($n['kw'] / $div);
             return ['cvf' => $cvf, 'origen' => 'kw', 'verificar' => $verificar, 'motivo' => null,
                 'explicacion' => sprintf('Eléctrico: %s kW / %s = %s CVF.', Partida::num($n['kw']), Partida::num($div, 3), Partida::num($cvf))];
         }
@@ -40,12 +41,18 @@ final class CaballosFiscales
         }
         $k = (float) $f['combustion']['coeficiente'];
         $exp = (float) $f['combustion']['exponente'];
-        $cvf = round($k * (($n['cc'] / $cilindros) ** $exp) * $cilindros, 2);
+        $cvf = self::truncar($k * (($n['cc'] / $cilindros) ** $exp) * $cilindros);
         return ['cvf' => $cvf, 'origen' => 'formula', 'verificar' => $verificar, 'motivo' => null,
             'explicacion' => sprintf(
                 '%s x (%d cm³ / %d cilindros)^%s x %d cilindros = %s CVF.',
                 Partida::num($k), $n['cc'], $cilindros, Partida::num($exp), $cilindros, Partida::num($cvf)
             )];
+    }
+
+    /** Anexo V del Reglamento General de Vehículos: «dos cifras decimales aproximada por defecto» (se trunca). */
+    public static function truncar(float $valor): float
+    {
+        return floor(round($valor * 100, 6)) / 100;
     }
 
     private static function falta(string $motivo, bool $verificar): array

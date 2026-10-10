@@ -5,27 +5,27 @@
   "verificar": false,
   "tramos": [
     {
-      "desde_anios": 0,
+      "hasta_anios": 1,
       "coeficiente": 1.0
     },
     {
-      "desde_anios": 1,
+      "hasta_anios": 2,
       "coeficiente": 0.8
     },
     {
-      "desde_anios": 2,
+      "hasta_anios": 3,
       "coeficiente": 0.6
     },
     {
-      "desde_anios": 3,
+      "hasta_anios": 5,
       "coeficiente": 0.5
     },
     {
-      "desde_anios": 5,
+      "hasta_anios": 10,
       "coeficiente": 0.4
     },
     {
-      "desde_anios": 10,
+      "hasta_anios": null,
       "coeficiente": 0.2
     }
   ]
