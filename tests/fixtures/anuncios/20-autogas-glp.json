@@ -1,0 +1,22 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "Dacia",
+  "modelo": "Duster",
+  "km": "23000",
+  "combustible": "glp",
+  "matriculacion": "07/2023",
+  "cc": "999",
+  "kw": "74",
+  "cv": "101",
+  "co2": "117",
+  "precio": "17400",
+  "vendedor": "profesional",
+  "cp_vendedor": "01067"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

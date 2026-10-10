@@ -1,0 +1,8 @@
+{
+ "_estado": "SIN VALIDAR contra páginas reales de mobile.de: desde el servidor de desarrollo mobile.de devuelve 403 (Akamai) y no se han podido guardar anuncios. Son pistas que se prueban ANTES de la lectura genérica por rótulos; si ninguna acierta, el lector sigue con los rótulos de data/diccionarios/etiquetas.json, así que un selector equivocado no estropea nada. Cuando se guarde una página real (Guardar como… en el navegador), se comprueba con `php scripts/analizar_anuncio.php fichero.html` y se corrigen aquí.",
+ "titulo": ["h1", "[data-testid='ad-title']", "[data-testid='vip-title']", "meta[property='og:title']"],
+ "precio": ["[data-testid='prime-price']", "[data-testid='price-block']", "[class*='price']"],
+ "vendedor": ["[data-testid='seller-type']", "[data-testid='sellerName']", "[class*='seller']"],
+ "ubicacion": ["[data-testid='seller-address']", "[data-testid='vip-location']", "[class*='address']", "[class*='location']"],
+ "filas_de_datos": ["[data-testid='vip-key-features-list'] > *", "[data-testid='vip-technical-data-box'] dl", "dl", "table tr", "li"]
+}

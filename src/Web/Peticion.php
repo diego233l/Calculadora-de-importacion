@@ -56,4 +56,16 @@ final class Peticion
         $valor = trim(preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/', '', $valor) ?? '');
         return mb_substr($valor, 0, $max);
     }
+
+    /** Texto de varias líneas (el que se pega en un cuadro de texto): conserva los saltos de línea y recorta a $max caracteres. */
+    public static function textoLargo(array $origen, string $clave, int $max = 60000): string
+    {
+        $valor = $origen[$clave] ?? '';
+        if (!is_string($valor)) {
+            return '';
+        }
+        $valor = str_replace(["\r\n", "\r"], "\n", $valor);
+        $valor = trim(preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/', '', $valor) ?? '');
+        return mb_substr($valor, 0, $max);
+    }
 }

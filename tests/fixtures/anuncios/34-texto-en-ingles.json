@@ -1,0 +1,23 @@
+{
+ "fuente": "texto",
+ "campos": {
+  "marca": "Audi",
+  "modelo": "A4",
+  "km": "88000",
+  "combustible": "diesel",
+  "matriculacion": "05/2018",
+  "cc": "1968",
+  "kw": "110",
+  "cv": "150",
+  "co2": "112",
+  "precio": "19800",
+  "vendedor": "particular",
+  "cp_vendedor": "04109"
+ },
+ "dudosos": [
+  "precio",
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

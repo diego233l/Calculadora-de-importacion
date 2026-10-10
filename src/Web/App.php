@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace CalculadoraImportacion\Web;
 
+use CalculadoraImportacion\Anuncio\Analizador;
+use CalculadoraImportacion\Anuncio\Descargador;
+use CalculadoraImportacion\Anuncio\DescargadorCurl;
+use CalculadoraImportacion\Anuncio\Enlace;
 use CalculadoraImportacion\Boe\Servicio as ServicioBoe;
 use CalculadoraImportacion\Calculo\Calculadora;
 use CalculadoraImportacion\Calculo\EntradaInvalida;
@@ -32,11 +36,15 @@ final class App
     private ?Almacen $almacen = null;
     private ?ServicioBoe $boe = null;
     private bool $boeCargado = false;
+    private ?LectorAnuncios $lector = null;
     /** @var \Closure(): string */
     private \Closure $hoy;
 
-    /** @param (\Closure(): string)|null $hoy devuelve la fecha de hoy como AAAA-MM-DD (los tests la fijan) */
-    public function __construct(private readonly string $dirVar, ?\Closure $hoy = null)
+    /**
+     * @param (\Closure(): string)|null $hoy devuelve la fecha de hoy como AAAA-MM-DD (los tests la fijan)
+     * @param Descargador|null $descargador quien descarga los anuncios (los tests ponen uno falso; nunca se llama a mobile.de desde ellos)
+     */
+    public function __construct(private readonly string $dirVar, ?\Closure $hoy = null, private readonly ?Descargador $descargador = null)
     {
         $this->hoy = $hoy ?? static function (): string {
             return (new \DateTimeImmutable('now', new \DateTimeZone(Config::ZONA_HORARIA)))->format('Y-m-d');
@@ -128,7 +136,7 @@ final class App
         return Respuesta::redirigir('/');
     }
 
-    /** Primer paso: enlace y municipio. Con ellos se muestra el formulario de datos del coche. */
+    /** Primer paso: enlace (o texto del anuncio) y municipio. Con ellos se muestra el formulario de datos del coche, ya rellenado. */
     private function datosPost(Peticion $p): Respuesta
     {
         $almacen = $this->almacen();
@@ -137,11 +145,17 @@ final class App
         }
         $tablas = $this->tablas();
         $enlace = Peticion::texto($p->post, 'enlace', 2100);
+        $texto = Peticion::textoLargo($p->post, 'texto_anuncio', Config::MAX_TEXTO_ANUNCIO);
         $errores = [];
+        $validado = null;
         if ($enlace !== '') {
-            $e = \CalculadoraImportacion\Anuncio\Enlace::validar($enlace);
-            if (!$e['ok']) {
-                $errores['enlace'] = $e['error'];
+            $e = Enlace::validar($enlace);
+            if ($e['ok']) {
+                $validado = $e;
+            } elseif ($texto === '') {
+                $errores['enlace'] = $e['error'];           // con el texto pegado, un enlace malo no impide nada
+            } else {
+                $enlace = '';
             }
         }
         $m = Municipios::resolver($tablas, Peticion::texto($p->post, 'municipio', 5), Peticion::texto($p->post, 'municipio_texto', 80));
@@ -149,20 +163,34 @@ final class App
             $errores['municipio'] = (string) $m['error'];
         }
         $valores = [
-            'enlace' => $enlace, 'municipio' => (string) $m['ine'],
+            'enlace' => $validado !== null ? $validado['canonica'] : $enlace, 'municipio' => (string) $m['ine'],
             'municipio_texto' => $m['ine'] !== null ? Municipios::etiqueta($tablas, $m['ine']) : Peticion::texto($p->post, 'municipio_texto', 80),
         ];
         $r = new Respuesta();
         $csrf = Csrf::emitir($p, $r, $almacen->secreto());
         if ($errores) {
             $r->estado = 422;
-            $r->cuerpo = Vista::pagina('inicio', ['csrf' => $csrf, 'valores' => $valores, 'errores' => $errores, 'candidatos' => $m['candidatos']], [
+            $r->cuerpo = Vista::pagina('inicio', ['csrf' => $csrf, 'valores' => $valores + ['texto_anuncio' => $texto], 'errores' => $errores, 'candidatos' => $m['candidatos']], [
                 'titulo' => 'Revisa los datos – Calculadora de importación', 'ruta' => '/', 'robots' => 'noindex', 'activa' => 'inicio',
             ]);
         } else {
-            $v = array_fill_keys(Formulario::CAMPOS, '');
-            $v = array_merge($v, $valores);
-            $r->cuerpo = $this->paginaDatos($csrf, $v, [], [], $tablas);
+            $v = array_merge(array_fill_keys(Formulario::CAMPOS, ''), $valores);
+            $anuncio = ['estado' => 'ninguno'];
+            $lectura = null;
+            if ($texto !== '' || $validado !== null) {
+                $res = $texto !== ''
+                    ? $this->lector()->leerTexto($texto, ($this->hoy)())
+                    : $this->lector()->leerEnlace($p->ip, $validado, ($this->hoy)());
+                $anuncio = ['estado' => $res['estado'], 'mensaje' => $res['mensaje'], 'fuente' => $texto !== '' ? 'texto' : 'enlace'];
+                $lectura = $res['lectura'];
+            }
+            if ($lectura !== null) {
+                $lectura = $this->completarConBoe($lectura, $tablas);
+                $v = Formulario::valoresDesdeLectura($lectura, $v);
+                $anuncio['avisos'] = $lectura['avisos'];
+                $anuncio['revisar'] = self::notasDeRevision($lectura);
+            }
+            $r->cuerpo = $this->paginaDatos($csrf, $v, [], [], $tablas, null, $anuncio);
         }
         $r->cabeceras['Content-Type'] = 'text/html; charset=utf-8';
         return $r->conCabecera('Cache-Control', 'no-store');
@@ -322,10 +350,10 @@ final class App
 
     // ------------------------------------------------------------------ piezas comunes
 
-    private function paginaDatos(string $csrf, array $valores, array $errores, array $candidatos, array $tablas, ?string $editando = null): string
+    private function paginaDatos(string $csrf, array $valores, array $errores, array $candidatos, array $tablas, ?string $editando = null, ?array $anuncio = null): string
     {
         return Vista::pagina('datos', [
-            'csrf' => $csrf, 'v' => $valores, 'errores' => $errores, 'candidatos' => $candidatos, 'editando' => $editando,
+            'csrf' => $csrf, 'v' => $valores, 'errores' => $errores, 'candidatos' => $candidatos, 'editando' => $editando, 'anuncio' => $anuncio,
             'combustibles' => self::COMBUSTIBLES, 'marcas' => $this->boe($tablas)?->marcas()->nombresVisibles() ?? [],
         ], [
             'titulo' => ($errores ? 'Revisa los datos' : 'Datos del coche') . ' – Calculadora de importación',
@@ -418,6 +446,79 @@ final class App
             $almacen->purgar(Config::DIAS_CONSERVACION);
         }
         return Respuesta::redirigir('/c/' . $id);
+    }
+
+    // ------------------------------------------------------------------ lectura del anuncio
+
+    private function lector(): LectorAnuncios
+    {
+        return $this->lector ??= new LectorAnuncios(
+            $this->almacen(), $this->dirVar, Analizador::crear(Config::dirData()), $this->descargador ?? new DescargadorCurl()
+        );
+    }
+
+    /**
+     * Lo que el anuncio no trae (cilindrada y cilindros) se toma de la fila del BOE que mejor encaja, si encaja bien,
+     * y se marca para que el usuario lo revise.
+     *
+     * @param array<string, mixed> $lectura
+     * @return array<string, mixed>
+     */
+    private function completarConBoe(array $lectura, array $tablas): array
+    {
+        $boe = $this->boe($tablas);
+        $c = $lectura['campos'];
+        if ($boe === null || isset($c['cc']) && isset($c['cilindros']) || ($c['combustible']['valor'] ?? '') === 'electrico') {
+            return $lectura;
+        }
+        $mat = preg_match('#^(\d{2})/(\d{4})$#', $c['matriculacion']['valor'] ?? '', $m) ? $m[2] . '-' . $m[1] . '-01' : null;
+        $entrada = [
+            'marca' => $c['marca']['valor'] ?? '', 'modelo' => $c['modelo']['valor'] ?? '', 'version' => $c['version']['valor'] ?? '',
+            'fecha_matriculacion' => $mat, 'combustible' => $c['combustible']['valor'] ?? null,
+            'cc' => isset($c['cc']) ? (int) $c['cc']['valor'] : null,
+            'cv' => isset($c['cv']) ? (float) $c['cv']['valor'] : null,
+            'kw' => isset($c['kw']) ? (float) str_replace(',', '.', $c['kw']['valor']) : null,
+        ];
+        $mejor = $boe->candidatas($entrada, 1)['candidatas'][0] ?? null;
+        if ($mejor === null || $mejor['puntuacion'] < \CalculadoraImportacion\Boe\Emparejador::UMBRAL_MEDIA) {
+            return $lectura;
+        }
+        $fila = $mejor['fila'];
+        $nota = 'Lo hemos tomado de la fila «' . $fila['modelo_tipo'] . '» de la Orden del BOE.';
+        foreach (['cc' => $fila['cc'], 'cilindros' => $fila['cilindros']] as $campo => $valor) {
+            if (!isset($c[$campo]) && $valor !== null) {
+                $c[$campo] = ['valor' => (string) $valor, 'confianza' => 0.7, 'origen' => 'BOE', 'nota' => $nota];
+            }
+        }
+        $lectura['campos'] = $c;
+        $lectura['dudosos'] = array_keys(array_filter($c, static fn(array $f): bool => $f['confianza'] < Analizador::UMBRAL_SEGURO));
+        $lectura['faltan'] = array_values(array_filter($lectura['faltan'], static fn(string $f): bool => !isset($c[$f])));
+        return $lectura;
+    }
+
+    /**
+     * Texto «Revisa:» de cada campo que el usuario debe mirar: los leídos con poca confianza y los que faltan.
+     *
+     * @param array<string, mixed> $lectura
+     * @return array<string, string>
+     */
+    private static function notasDeRevision(array $lectura): array
+    {
+        $origen = [
+            'estructurado' => 'los datos estructurados del anuncio', 'etiqueta' => 'la ficha del anuncio', 'título' => 'el título del anuncio',
+            'regex' => 'una búsqueda en el texto del anuncio', 'derivado' => 'otro dato del anuncio', 'BOE' => 'la Orden del BOE',
+        ];
+        $n = [];
+        foreach ($lectura['dudosos'] as $campo) {
+            $f = $lectura['campos'][$campo];
+            $n[$campo] = ($f['nota'] ?? null) !== null && $f['nota'] !== ''
+                ? $f['nota']
+                : 'Lo hemos deducido de ' . ($origen[$f['origen']] ?? 'el anuncio') . ' y no estamos seguros (confianza ' . (int) round($f['confianza'] * 100) . ' %).';
+        }
+        foreach ($lectura['faltan'] as $campo) {
+            $n[$campo] = 'No lo hemos encontrado en el anuncio: complétalo tú.';
+        }
+        return $n;
     }
 
     // ------------------------------------------------------------------ fila del BOE

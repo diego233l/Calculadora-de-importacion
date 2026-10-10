@@ -31,9 +31,17 @@ use function CalculadoraImportacion\Web\resumenErrores;
           'modo' => 'url', 'auto' => 'off',
       ]) ?>
       <?= campoMunicipio($valores, $errores, $candidatos) ?>
+      <details class="pegar-texto"<?= !empty($valores['texto_anuncio']) || isset($errores['texto_anuncio']) ? ' open' : '' ?>>
+        <summary>¿El enlace no funciona? Pega el texto del anuncio</summary>
+        <div class="campo">
+          <label for="f-texto_anuncio">Texto del anuncio <span class="opcional">(opcional)</span></label>
+          <p class="pista" id="p-texto_anuncio">Abre el anuncio, pulsa Ctrl+A y Ctrl+C (en el móvil, «Seleccionar todo» y «Copiar») y pega aquí. Si pegas el texto, se usa en lugar del enlace.</p>
+          <textarea id="f-texto_anuncio" name="texto_anuncio" rows="5" maxlength="60000" aria-describedby="p-texto_anuncio" spellcheck="false" autocomplete="off"><?= e($valores['texto_anuncio'] ?? '') ?></textarea>
+        </div>
+      </details>
       <button class="boton boton--bloque" type="submit">Continuar</button>
     </form>
-    <p class="aviso-nota">De momento los datos del coche los escribes tú; muy pronto leeremos el anuncio por ti. No pedimos registro ni datos personales.</p>
+    <p class="aviso-nota">Leemos los datos del anuncio por ti y tú los revisas antes de calcular. No pedimos registro ni datos personales.</p>
   </div>
 </div>
 
@@ -43,11 +51,11 @@ use function CalculadoraImportacion\Web\resumenErrores;
     <ol class="pasos">
       <li>
         <h3>Pega el anuncio y elige municipio</h3>
-        <p>Solo se admiten enlaces de mobile.de. El municipio de destino fija el ITP, el IVTM y la comunidad autónoma.</p>
+        <p>Solo se admiten enlaces de mobile.de (o el texto copiado del anuncio). El municipio de destino fija el ITP, el IVTM y la comunidad autónoma.</p>
       </li>
       <li>
         <h3>Revisa los datos del coche</h3>
-        <p>Marca, matriculación, kilómetros, potencia, emisiones y vendedor. Tú tienes la última palabra sobre cada dato.</p>
+        <p>Leemos marca, matriculación, kilómetros, potencia, emisiones y vendedor, y marcamos lo que no está claro. Tú tienes la última palabra sobre cada dato.</p>
       </li>
       <li>
         <h3>Recibe el desglose completo</h3>

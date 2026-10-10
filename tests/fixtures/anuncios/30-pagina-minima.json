@@ -1,0 +1,20 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "SEAT",
+  "modelo": "Ibiza"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [
+  "cc",
+  "combustible",
+  "cp_vendedor",
+  "km",
+  "matriculacion",
+  "precio",
+  "vendedor"
+ ],
+ "avisos_contienen": []
+}

@@ -175,3 +175,18 @@ prueba('X7. Formato: euros, porcentajes y fechas a la española; todo escapado',
     Afirmar::lanza(InvalidArgumentException::class, fn() => Vista::renderizar('../../etc/passwd'));
     Afirmar::lanza(InvalidArgumentException::class, fn() => Vista::renderizar('marco.php'));
 });
+
+prueba('X8. Un almacén de una versión anterior (contadores sin «tam») se actualiza solo', function (): void {
+    $dir = dirVarPrueba('antiguo');
+    $pdo = new PDO('sqlite:' . $dir . '/calculos.sqlite');
+    $pdo->exec('CREATE TABLE limites (clave TEXT NOT NULL, ventana INTEGER NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (clave, ventana))');
+    $pdo->exec("INSERT INTO limites VALUES ('x', 1, 1)");
+    unset($pdo);
+    $a = new CalculadoraImportacion\Web\Almacen($dir);
+    Afirmar::verdadero($a->permitir('ip', 2, 60, 1_000_000_020));
+    Afirmar::verdadero($a->permitir('ip', 2, 60, 1_000_000_021));
+    Afirmar::falso($a->permitir('ip', 2, 60, 1_000_000_022));
+    // Ventanas de un segundo y de un minuto conviven sin borrarse entre sí
+    Afirmar::verdadero($a->permitir('otra', 1, 1, 1_000_000_030));
+    Afirmar::falso($a->permitir('ip', 2, 60, 1_000_000_031), 'el contador del minuto sigue vivo');
+});

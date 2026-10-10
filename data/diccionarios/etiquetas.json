@@ -1,0 +1,24 @@
+{
+ "_nota": "Rótulos con los que aparece cada dato en un anuncio de mobile.de (alemán, inglés y español). Se comparan en minúsculas, sin notas al pie (¹ ²), sin lo que va entre paréntesis y sin dos puntos finales. Si mobile.de cambia un rótulo, se añade aquí: no hace falta tocar código.",
+ "campos": {
+  "km": ["kilometerstand", "kilometer", "km-stand", "laufleistung", "mileage", "odometer", "kilometraje", "kilómetros", "kilometros"],
+  "matriculacion": ["erstzulassung", "ez", "zulassung", "first registration", "registration", "primera matriculación", "primera matriculacion", "fecha de matriculación", "fecha de matriculacion", "matriculación", "matriculacion"],
+  "potencia": ["leistung", "motorleistung", "power", "engine power", "potencia"],
+  "cilindrada": ["hubraum", "engine size", "cubic capacity", "displacement", "cilindrada", "cubicaje"],
+  "combustible": ["kraftstoffart", "kraftstoff", "fuel", "fuel type", "combustible", "tipo de combustible"],
+  "co2": ["co2-emissionen", "co₂-emissionen", "co2 emissionen", "co₂ emissionen", "co2-emission", "co₂-emission", "co2 emissions", "co₂ emissions", "emisiones de co2", "emisiones de co₂", "emisiones co2", "co2", "co₂"],
+  "cambio": ["getriebe", "transmission", "gearbox", "cambio", "caja de cambios"],
+  "estado": ["fahrzeugzustand", "zustand", "condition", "estado"],
+  "propietarios": ["anzahl der fahrzeughalter", "fahrzeughalter", "vorbesitzer", "number of vehicle owners", "owners", "propietarios", "número de propietarios", "numero de propietarios"],
+  "ubicacion": ["standort", "fahrzeugstandort", "location", "ubicación", "ubicacion"],
+  "precio": ["preis", "kaufpreis", "bruttopreis", "brutto", "price", "gross price", "precio", "precio bruto"],
+  "precio_neto": ["nettopreis", "netto", "net price", "net", "precio neto"],
+  "marca": ["marke", "make", "brand", "marca"],
+  "modelo": ["modell", "model", "modelo"],
+  "version": ["modellvariante", "variante", "variant", "versión", "version", "ausstattungslinie", "trim"],
+  "vendedor": ["anbieter", "anbietertyp", "verkäufer", "seller", "seller type", "vendedor", "tipo de vendedor"]
+ },
+ "vendedor_profesional": ["händler", "haendler", "autohaus", "gewerblich", "gewerblicher anbieter", "gewerbliche", "dealer", "profesional", "concesionario"],
+ "vendedor_particular": ["privatanbieter", "privat", "privatverkäufer", "privatverkaeufer", "private seller", "private", "particular"],
+ "iva_deducible": ["mwst. ausweisbar", "mwst ausweisbar", "mehrwertsteuer ausweisbar", "mwst.-ausweisbar", "mehrwertsteuer ist ausweisbar", "vat deductible", "vat reclaimable", "vat can be reclaimed", "iva deducible", "iva desglosable"]
+}

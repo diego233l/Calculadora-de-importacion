@@ -126,11 +126,12 @@ main:focus { outline: none; }
 .campo > label, .campo > .etiqueta, legend { font-weight: 600; }
 .pista { color: var(--tinta-2); font-size: .9rem; margin: 0; }
 .opcional { font-weight: 400; color: var(--tinta-2); }
-input[type="text"], input[type="search"], select {
+input[type="text"], input[type="search"], select, textarea {
   width: 100%; min-height: 48px; padding: .6rem .8rem; border-radius: 10px; border: 1.5px solid var(--linea);
   background: var(--tarjeta); color: var(--tinta); font: inherit;
 }
-input[type="text"]:hover, select:hover { border-color: var(--tinta-2); }
+input[type="text"]:hover, select:hover, textarea:hover { border-color: var(--tinta-2); }
+textarea { min-height: 7.5rem; resize: vertical; line-height: 1.45; }
 input[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--error-borde); background: var(--error-fondo); }
 .error-campo { color: var(--error-texto); font-weight: 600; font-size: .92rem; margin: 0; }
 .error-campo::before { content: "⚠ "; }
@@ -330,3 +331,12 @@ fieldset > legend { padding-inline: .4rem; font-family: var(--serif); font-size:
 .boe-fila input:focus-visible + label { outline: 3px solid var(--foco); outline-offset: 2px; }
 .boe-fila__nombre { font-weight: 700; }
 .boe-fila__datos, .boe-fila__motivo { color: var(--tinta-2); font-size: .92rem; }
+
+/* Lectura del anuncio: datos que hay que revisar y cuadro para pegar el texto */
+.campo--revisar > input, .campo--revisar > select, .campo--revisar .opciones { border-color: var(--aviso-borde); }
+.campo--revisar > input, .campo--revisar > select { background: var(--aviso-fondo); }
+.aviso-campo { margin: 0; color: var(--aviso-texto); font-size: .9rem; }
+.pegar-texto, .pegar-anuncio { border: 1.5px dashed var(--linea); border-radius: 12px; padding: .2rem 1rem .8rem; background: var(--tarjeta); }
+.pegar-texto > summary, .pegar-anuncio > summary { cursor: pointer; font-weight: 600; padding: .7rem 0; min-height: 48px; display: flex; align-items: center; }
+.pegar-anuncio { margin: 1rem 0 1.4rem; }
+.pegar-anuncio > summary { font-family: var(--serif); font-size: 1.1rem; }

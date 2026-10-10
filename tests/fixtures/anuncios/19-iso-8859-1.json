@@ -1,0 +1,22 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "Mercedes-Benz",
+  "modelo": "C 220",
+  "km": "120000",
+  "combustible": "diesel",
+  "matriculacion": "04/2018",
+  "cc": "1950",
+  "kw": "143",
+  "cv": "194",
+  "co2": "130",
+  "precio": "24900",
+  "vendedor": "profesional",
+  "cp_vendedor": "40213"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

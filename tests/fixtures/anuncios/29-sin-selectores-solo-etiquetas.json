@@ -1,0 +1,22 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "Porsche",
+  "modelo": "911",
+  "km": "38000",
+  "combustible": "gasolina",
+  "matriculacion": "05/2020",
+  "cc": "2981",
+  "kw": "331",
+  "cv": "450",
+  "co2": "210",
+  "precio": "119900",
+  "vendedor": "profesional",
+  "cp_vendedor": "80331"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

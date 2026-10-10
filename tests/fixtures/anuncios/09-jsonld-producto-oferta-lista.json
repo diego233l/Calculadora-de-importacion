@@ -1,0 +1,22 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "Audi",
+  "modelo": "A3",
+  "km": "48000",
+  "combustible": "gasolina",
+  "matriculacion": "06/2021",
+  "cc": "1498",
+  "kw": "110",
+  "cv": "150",
+  "co2": "126",
+  "precio": "22900",
+  "vendedor": "profesional",
+  "cp_vendedor": "50667"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

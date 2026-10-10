@@ -1,0 +1,23 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "BMW",
+  "modelo": "320d",
+  "km": "105000",
+  "combustible": "diesel",
+  "matriculacion": "03/2019",
+  "cc": "1995",
+  "kw": "140",
+  "cv": "190",
+  "co2": "119",
+  "precio": "16500",
+  "vendedor": "particular",
+  "cp_vendedor": "80331"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": [],
+ "hostil": true
+}

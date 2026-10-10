@@ -82,7 +82,8 @@ final class Formulario
 
         self::entero($v, 'km', 0, 2_000_000, 'Indica los kilómetros que marca el anuncio (un número entre 0 y 2.000.000).', true, $entrada, $err);
         self::entero($v, 'cc', 1, 20000, 'La cilindrada debe estar en cm³ (por ejemplo 1.998).', !$electrico, $entrada, $err, 'Indica la cilindrada del motor en cm³ (por ejemplo 1.998).');
-        self::entero($v, 'cilindros', 1, 16, 'El número de cilindros debe estar entre 1 y 16.', !$electrico, $entrada, $err, 'Indica el número de cilindros (la mayoría de coches tienen 4). Con él calculamos los caballos fiscales.');
+        // Los cilindros no suelen aparecer en el anuncio: si falta, el motor usa los de la fila del BOE
+        self::entero($v, 'cilindros', 1, 16, 'El número de cilindros debe estar entre 1 y 16.', false, $entrada, $err);
         self::decimal($v, 'kw', 1, 4000, 'La potencia en kW debe estar entre 1 y 4.000.', $electrico, $entrada, $err, 'En un eléctrico, indica la potencia en kW: con ella calculamos los caballos fiscales.');
         self::decimal($v, 'cv', 1, 5000, 'La potencia en CV debe estar entre 1 y 5.000.', false, $entrada, $err);
         if ($electrico) {
@@ -192,6 +193,28 @@ final class Formulario
         $entrada['costes_fijos'] = $costes;
         $entrada['transporte'] = $t;
         return ['entrada' => $entrada, 'errores' => [], 'valores' => $v];
+    }
+
+    /**
+     * Valores del formulario a partir de lo leído de un anuncio (ver Analizador): los datos que no se han encontrado quedan en blanco.
+     *
+     * @param array<string, mixed> $lectura
+     * @param array<string, string> $base lo que ya había en el formulario (enlace, municipio…)
+     * @return array<string, string>
+     */
+    public static function valoresDesdeLectura(array $lectura, array $base): array
+    {
+        $v = array_merge(array_fill_keys(self::CAMPOS, ''), $base);
+        foreach ($lectura['campos'] as $campo => $d) {
+            if (array_key_exists($campo, $v) && $campo !== 'boe_precio') {
+                $v[$campo] = (string) $d['valor'];
+            }
+        }
+        // El tipo de vendedor decide si el IVA desglosable tiene sentido
+        if (($v['vendedor'] ?? '') !== 'profesional') {
+            $v['iva_deducible'] = '';
+        }
+        return $v;
     }
 
     /** Valores del formulario de datos a partir de una entrada guardada (para editarla). @return array<string, string> */

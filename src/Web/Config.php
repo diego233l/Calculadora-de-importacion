@@ -10,8 +10,10 @@ final class Config
     /** Datos generados en ejecución (caché, SQLite, logs, clave de CSRF). Propiedad de www-data, fuera del repositorio. */
     public const DIR_VAR_POR_DEFECTO = '/var/lib/calculadora-importacion';
     public const ZONA_HORARIA = 'Europe/Madrid';
-    /** Tamaño máximo de un formulario enviado (bytes). Los nuestros pesan menos de 3 KB. */
-    public const MAX_CUERPO = 32768;
+    /** Tamaño máximo de un formulario enviado (bytes): el texto pegado de un anuncio puede pasar de 60 KB con la codificación del formulario. */
+    public const MAX_CUERPO = 262144;
+    /** Caracteres que se leen del texto de un anuncio pegado (una página copiada entera ocupa unos 10.000). */
+    public const MAX_TEXTO_ANUNCIO = 60000;
     /** Cálculos que puede guardar una misma IP por minuto. */
     public const LIMITE_CALCULOS_POR_MINUTO = 20;
     /** Días que se conserva un cálculo compartido. */

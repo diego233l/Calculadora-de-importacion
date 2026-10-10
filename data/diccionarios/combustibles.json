@@ -1,0 +1,14 @@
+{
+ "_nota": "Texto de «Kraftstoffart» (y sus equivalentes en inglés y español) -> combustible de la calculadora. Se busca el texto entero (minúsculas, sin acentos) y, si no está, la primera entrada contenida en él, de la más larga a la más corta.",
+ "combustibles": {
+  "benzin": "gasolina", "super": "gasolina", "super plus": "gasolina", "gasoline": "gasolina", "petrol": "gasolina", "gasolina": "gasolina", "otto": "gasolina",
+  "diesel": "diesel", "diésel": "diesel", "gasoleo": "diesel", "gasóleo": "diesel",
+  "elektro": "electrico", "electric": "electrico", "electrico": "electrico", "eléctrico": "electrico", "elektrisch": "electrico",
+  "hybrid (benzin/elektro)": "hibrido", "hybrid (diesel/elektro)": "hibrido", "hybrid": "hibrido", "hibrido": "hibrido", "híbrido": "hibrido", "mild-hybrid": "hibrido",
+  "plug-in-hybrid": "phev", "plug-in hybrid": "phev", "plugin-hybrid": "phev", "plug-in": "phev", "phev": "phev", "hibrido enchufable": "phev", "híbrido enchufable": "phev",
+  "autogas (lpg)": "glp", "autogas": "glp", "lpg": "glp", "glp": "glp", "gas licuado": "glp",
+  "erdgas (cng)": "gnc", "erdgas": "gnc", "cng": "gnc", "gnc": "gnc", "gas natural": "gnc",
+  "wasserstoff": "hidrogeno", "hydrogen": "hidrogeno", "hidrogeno": "hidrogeno", "hidrógeno": "hidrogeno",
+  "ethanol": "etanol", "etanol": "etanol", "bioethanol": "etanol"
+ }
+}

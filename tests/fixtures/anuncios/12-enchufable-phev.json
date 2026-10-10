@@ -1,0 +1,22 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "Volkswagen",
+  "modelo": "Golf",
+  "km": "54000",
+  "combustible": "phev",
+  "matriculacion": "11/2020",
+  "cc": "1395",
+  "kw": "110",
+  "cv": "150",
+  "co2": "36",
+  "precio": "21490",
+  "vendedor": "profesional",
+  "cp_vendedor": "60311"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

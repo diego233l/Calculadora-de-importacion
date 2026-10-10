@@ -52,11 +52,24 @@ final class Almacen
                 resultado TEXT NOT NULL
             )');
             $pdo->exec('CREATE INDEX IF NOT EXISTS calculos_creado ON calculos (creado)');
+            // Instalaciones anteriores tenían los contadores sin «tam»: son datos de un minuto, se recrean
+            $columnas = array_column($pdo->query('PRAGMA table_info(limites)')->fetchAll(), 'name');
+            if ($columnas !== [] && !in_array('tam', $columnas, true)) {
+                $pdo->exec('DROP TABLE limites');
+            }
+            // tam = segundos de la ventana (60 para «por minuto», 1 para «por segundo»): así la limpieza de una no borra la otra
             $pdo->exec('CREATE TABLE IF NOT EXISTS limites (
                 clave TEXT NOT NULL,
+                tam INTEGER NOT NULL,
                 ventana INTEGER NOT NULL,
                 n INTEGER NOT NULL,
-                PRIMARY KEY (clave, ventana)
+                PRIMARY KEY (clave, tam, ventana)
+            )');
+            // Datos ya leídos de un anuncio (nunca el HTML), durante unas horas, para no volver a pedirlo a mobile.de
+            $pdo->exec('CREATE TABLE IF NOT EXISTS anuncios (
+                id TEXT PRIMARY KEY,
+                creado INTEGER NOT NULL,
+                datos TEXT NOT NULL
             )');
             $this->pdo = $pdo;
         }
@@ -121,13 +134,34 @@ final class Almacen
         $ahora ??= time();
         $ventana = intdiv($ahora, $segundos);
         $bd = $this->bd();
-        $bd->prepare('DELETE FROM limites WHERE ventana < :v')->execute([':v' => $ventana - 5]);
-        $bd->prepare('INSERT INTO limites (clave, ventana, n) VALUES (:c, :v, 1)
-                      ON CONFLICT (clave, ventana) DO UPDATE SET n = n + 1')
-            ->execute([':c' => hash('sha256', $clave), ':v' => $ventana]);
-        $q = $bd->prepare('SELECT n FROM limites WHERE clave = :c AND ventana = :v');
-        $q->execute([':c' => hash('sha256', $clave), ':v' => $ventana]);
+        $bd->prepare('DELETE FROM limites WHERE tam = :t AND ventana < :v')->execute([':t' => $segundos, ':v' => $ventana - 5]);
+        $bd->prepare('INSERT INTO limites (clave, tam, ventana, n) VALUES (:c, :t, :v, 1)
+                      ON CONFLICT (clave, tam, ventana) DO UPDATE SET n = n + 1')
+            ->execute([':c' => hash('sha256', $clave), ':t' => $segundos, ':v' => $ventana]);
+        $q = $bd->prepare('SELECT n FROM limites WHERE clave = :c AND tam = :t AND ventana = :v');
+        $q->execute([':c' => hash('sha256', $clave), ':t' => $segundos, ':v' => $ventana]);
         return (int) $q->fetchColumn() <= $max;
+    }
+
+    /** Datos de un anuncio leídos hace menos de $segundos (24 h por defecto), o null. @return array<string, mixed>|null */
+    public function leerAnuncio(string $id, int $segundos = 86400, ?int $ahora = null): ?array
+    {
+        $q = $this->bd()->prepare('SELECT creado, datos FROM anuncios WHERE id = :id');
+        $q->execute([':id' => $id]);
+        $f = $q->fetch();
+        if (!$f || (int) $f['creado'] < ($ahora ?? time()) - $segundos) {
+            return null;
+        }
+        $d = json_decode((string) $f['datos'], true);
+        return is_array($d) ? $d : null;
+    }
+
+    /** @param array<string, mixed> $datos */
+    public function guardarAnuncio(string $id, array $datos, ?int $ahora = null): void
+    {
+        $this->bd()->prepare('INSERT INTO anuncios (id, creado, datos) VALUES (:id, :t, :d)
+                              ON CONFLICT (id) DO UPDATE SET creado = :t, datos = :d')
+            ->execute([':id' => $id, ':t' => $ahora ?? time(), ':d' => json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
     }
 
     /** Borra los cálculos caducados y los contadores antiguos. Se llama de vez en cuando, no en cada petición. */
@@ -136,7 +170,9 @@ final class Almacen
         $ahora ??= time();
         $bd = $this->bd();
         $bd->prepare('DELETE FROM calculos WHERE creado < :limite')->execute([':limite' => $ahora - $diasConservacion * 86400]);
-        $bd->prepare('DELETE FROM limites WHERE ventana < :v')->execute([':v' => intdiv($ahora, 60) - 120]);
+        $bd->prepare('DELETE FROM limites WHERE (tam = 60 AND ventana < :v) OR (tam = 1 AND ventana < :s)')
+            ->execute([':v' => intdiv($ahora, 60) - 120, ':s' => $ahora - 7200]);
+        $bd->prepare('DELETE FROM anuncios WHERE creado < :limite')->execute([':limite' => $ahora - 86400]);
     }
 
     /** Clave para firmar los tokens CSRF. Se genera una vez y se guarda con permisos 0600. */

@@ -1,0 +1,19 @@
+{
+ "fuente": "html",
+ "campos": {
+  "km": "12000",
+  "combustible": "electrico",
+  "matriculacion": "05/2023",
+  "kw": "126",
+  "cv": "171",
+  "precio": "25500",
+  "vendedor": "profesional",
+  "cp_vendedor": "80331"
+ },
+ "dudosos": [],
+ "faltan": [
+  "marca",
+  "modelo"
+ ],
+ "avisos_contienen": []
+}

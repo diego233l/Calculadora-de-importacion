@@ -1,0 +1,20 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "Tesla",
+  "modelo": "Model 3",
+  "km": "62000",
+  "combustible": "electrico",
+  "matriculacion": "09/2021",
+  "kw": "324",
+  "cv": "441",
+  "precio": "28900",
+  "vendedor": "profesional",
+  "cp_vendedor": "20095"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

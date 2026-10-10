@@ -1,0 +1,22 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "SEAT",
+  "modelo": "León",
+  "km": "72000",
+  "combustible": "gasolina",
+  "matriculacion": "10/2020",
+  "cc": "1498",
+  "kw": "96",
+  "cv": "130",
+  "co2": "118",
+  "precio": "15200",
+  "vendedor": "particular",
+  "cp_vendedor": "80331"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

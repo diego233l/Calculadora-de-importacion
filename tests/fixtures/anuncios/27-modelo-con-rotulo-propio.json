@@ -1,0 +1,22 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "Peugeot",
+  "modelo": "308",
+  "km": "67000",
+  "combustible": "diesel",
+  "matriculacion": "08/2020",
+  "cc": "1499",
+  "kw": "96",
+  "cv": "130",
+  "co2": "104",
+  "precio": "16900",
+  "vendedor": "particular",
+  "cp_vendedor": "45127"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

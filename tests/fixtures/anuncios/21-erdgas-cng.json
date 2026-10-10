@@ -1,0 +1,22 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "Volkswagen",
+  "modelo": "Golf",
+  "km": "99000",
+  "combustible": "gnc",
+  "matriculacion": "01/2019",
+  "cc": "1498",
+  "kw": "96",
+  "cv": "130",
+  "co2": "100",
+  "precio": "14300",
+  "vendedor": "particular",
+  "cp_vendedor": "30159"
+ },
+ "dudosos": [
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

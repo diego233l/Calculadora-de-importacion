@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use CalculadoraImportacion\Anuncio\Descargador;
 use CalculadoraImportacion\Web\App;
 use CalculadoraImportacion\Web\Csrf;
 use CalculadoraImportacion\Web\Peticion;
@@ -26,10 +27,47 @@ function dirVarPrueba(string $sufijo = ''): string
     return $dir;
 }
 
-/** Aplicación con su propio almacén vacío y la fecha fijada a 10/10/2026. */
-function appPrueba(?string $dir = null): App
+/**
+ * Descargador falso: ningún test llama a mobile.de. Devuelve las respuestas que se le indiquen, de una en una (la última se repite),
+ * y cuenta cuántas veces se le ha pedido algo.
+ */
+final class DescargadorFalso implements Descargador
 {
-    return new App($dir ?? dirVarPrueba(bin2hex(random_bytes(3))), static fn(): string => '2026-10-10');
+    public int $llamadas = 0;
+    /** @var list<string> */
+    public array $urls = [];
+
+    /** @param list<array{ok: bool, estado: ?int, cuerpo: ?string, tipo_error: ?string}> $respuestas */
+    public function __construct(private array $respuestas = [])
+    {
+        $this->respuestas ??= [];
+        if ($this->respuestas === []) {
+            $this->respuestas = [self::bloqueado()];
+        }
+    }
+
+    public static function bloqueado(): array
+    {
+        return ['ok' => false, 'estado' => 403, 'cuerpo' => null, 'tipo_error' => 'bloqueado'];
+    }
+
+    public static function pagina(string $html): array
+    {
+        return ['ok' => true, 'estado' => 200, 'cuerpo' => $html, 'tipo_error' => null];
+    }
+
+    public function obtener(string $url): array
+    {
+        $this->llamadas++;
+        $this->urls[] = $url;
+        return count($this->respuestas) > 1 ? array_shift($this->respuestas) : $this->respuestas[0];
+    }
+}
+
+/** Aplicación con su propio almacén vacío, la fecha fijada a 10/10/2026 y un descargador que se declara bloqueado. */
+function appPrueba(?string $dir = null, ?Descargador $descargador = null): App
+{
+    return new App($dir ?? dirVarPrueba(bin2hex(random_bytes(3))), static fn(): string => '2026-10-10', $descargador ?? new DescargadorFalso());
 }
 
 function peticionGet(string $ruta, array $consulta = [], array $cookies = [], string $ip = '10.0.0.1'): Peticion

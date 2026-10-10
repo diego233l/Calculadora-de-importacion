@@ -17,6 +17,17 @@ final class Enlace
     public const HOSTS = ['suchen.mobile.de', 'www.mobile.de', 'm.mobile.de'];
     private const MAX_LONGITUD = 2048;
 
+    /** ¿Es una URL https de uno de los hosts de mobile.de, sin credenciales ni puerto raro? (para validar cada redirección) */
+    public static function hostPermitido(string $url): bool
+    {
+        if (preg_match('/[\x00-\x20\x7f-\xff\\\\]/', $url) || !preg_match('#^https://#i', $url)) {
+            return false;
+        }
+        $p = parse_url($url);
+        return $p !== false && in_array(strtolower($p['host'] ?? ''), self::HOSTS, true)
+            && !isset($p['user']) && !isset($p['pass']) && (!isset($p['port']) || $p['port'] === 443);
+    }
+
     /** @return array{ok: true, id: string, host: string, canonica: string}|array{ok: false, error: string} */
     public static function validar(string $texto): array
     {

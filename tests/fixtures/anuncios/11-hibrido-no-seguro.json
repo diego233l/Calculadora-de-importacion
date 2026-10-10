@@ -1,0 +1,23 @@
+{
+ "fuente": "html",
+ "campos": {
+  "marca": "Toyota",
+  "modelo": "Yaris",
+  "km": "31000",
+  "combustible": "hibrido",
+  "matriculacion": "02/2022",
+  "cc": "1490",
+  "kw": "85",
+  "cv": "116",
+  "co2": "87",
+  "precio": "17950",
+  "vendedor": "profesional",
+  "cp_vendedor": "70173"
+ },
+ "dudosos": [
+  "combustible",
+  "version"
+ ],
+ "faltan": [],
+ "avisos_contienen": []
+}

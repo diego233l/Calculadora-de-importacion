@@ -43,11 +43,16 @@ function campoTexto(string $nombre, string $etiqueta, array $valores, array $err
     $valor = (string) ($valores[$nombre] ?? '');
     $error = $errores[$nombre] ?? null;
     $describe = [];
-    $html = '<div class="campo"><label for="' . e($id) . '">' . e($etiqueta)
+    $revisar = $op['revisar'] ?? null;
+    $html = '<div class="campo' . ($revisar !== null ? ' campo--revisar' : '') . '"><label for="' . e($id) . '">' . e($etiqueta)
         . (empty($op['obligatorio']) ? ' <span class="opcional">(opcional)</span>' : '') . '</label>';
     if (!empty($op['pista'])) {
         $html .= '<p class="pista" id="p-' . e($nombre) . '">' . e($op['pista']) . '</p>';
         $describe[] = 'p-' . $nombre;
+    }
+    if ($revisar !== null) {
+        $html .= avisoRevisar($nombre, $revisar);
+        $describe[] = 'r-' . $nombre;
     }
     if ($error !== null) {
         $describe[] = 'e-' . $nombre;
@@ -62,6 +67,12 @@ function campoTexto(string $nombre, string $etiqueta, array $valores, array $err
         $html .= '<p class="error-campo" id="e-' . e($nombre) . '">' . e($error) . '</p>';
     }
     return $html . '</div>';
+}
+
+/** Aviso «Revisa este dato» que acompaña a un campo leído del anuncio con poca confianza (o que no se ha encontrado). */
+function avisoRevisar(string $nombre, string $texto): string
+{
+    return '<p class="aviso-campo" id="r-' . e($nombre) . '"><span aria-hidden="true">⚠ </span><strong>Revisa:</strong> ' . e($texto) . '</p>';
 }
 
 /** Selector de municipio de destino: con JavaScript es un autocompletado; sin él, un campo de texto que el servidor resuelve. */
