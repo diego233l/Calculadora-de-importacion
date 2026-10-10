@@ -1,0 +1,13 @@
+{
+  "anio": 2099,
+  "fuente": "Tablas de PRUEBA con números redondos (no son datos reales)",
+  "url": "https://example.invalid/prueba",
+  "verificar": false,
+  "tipo_iva_es": 20.0,
+  "tipo_igic_canarias": 5.0,
+  "tipo_iva_alemania": 10.0,
+  "nuevo": {
+    "meses_max": 6,
+    "km_max": 6000
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "anio": 2099,
+  "fuente": "Tablas de PRUEBA con números redondos (no son datos reales)",
+  "url": "https://example.invalid/prueba",
+  "verificar": false,
+  "ccaa": {
+    "AN": {
+      "nombre": "Andalucía",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "CT": {
+      "nombre": "Cataluña",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "CN": {
+      "nombre": "Canarias",
+      "regimen": "canarias",
+      "regimen_iedmt": "canarias",
+      "soportada": true
+    },
+    "IB": {
+      "nombre": "Illes Balears",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "MD": {
+      "nombre": "Comunidad de Madrid",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "PV": {
+      "nombre": "País Vasco",
+      "regimen": "foral",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "VC": {
+      "nombre": "Comunitat Valenciana",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "CE": {
+      "nombre": "Ceuta",
+      "regimen": "ceuta_melilla",
+      "regimen_iedmt": null,
+      "soportada": false
+    }
+  }
+}

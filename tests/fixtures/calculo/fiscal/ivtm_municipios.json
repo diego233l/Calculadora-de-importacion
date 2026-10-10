@@ -1,0 +1,25 @@
+{
+  "anio": 2099,
+  "fuente": "Tablas de PRUEBA con números redondos (no son datos reales)",
+  "url": "https://example.invalid/prueba",
+  "verificar": false,
+  "coeficiente_por_defecto": 1.0,
+  "municipios": [
+    {
+      "ine": "28900",
+      "nombre": "Madrid de prueba",
+      "coeficiente": 2.0,
+      "url_ordenanza": "https://example.invalid/ordenanza",
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    {
+      "ine": "08900",
+      "nombre": "Barcelona de prueba",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "prueba"
+    }
+  ]
+}

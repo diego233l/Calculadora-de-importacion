@@ -1,0 +1,82 @@
+{
+  "anio": 2099,
+  "fuente": "Tablas de PRUEBA con números redondos (no son datos reales)",
+  "url": "https://example.invalid/prueba",
+  "verificar": false,
+  "base": "valor_venal",
+  "ccaa": {
+    "MD": {
+      "tipo_general": 4.0,
+      "reglas": [],
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    "CT": {
+      "tipo_general": 6.0,
+      "reglas": [
+        {
+          "si": {
+            "antiguedad_min": 10
+          },
+          "tipo": 3.0
+        }
+      ],
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    "VC": {
+      "tipo_general": 8.0,
+      "reglas": [
+        {
+          "si": {
+            "cvf_min": 15
+          },
+          "tipo": 10.0
+        }
+      ],
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    "IB": {
+      "tipo_general": 4.0,
+      "reglas": [
+        {
+          "si": {
+            "antiguedad_min": 15
+          },
+          "cuota_fija": 50.0
+        }
+      ],
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    "CN": {
+      "tipo_general": 5.0,
+      "reglas": [],
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    "PV": {
+      "tipo_general": 4.0,
+      "reglas": [],
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    "AN": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "prueba",
+      "candidatos": [
+        {
+          "tipo": 4.0,
+          "origen": "fuente A"
+        },
+        {
+          "tipo": 8.0,
+          "origen": "fuente B"
+        }
+      ]
+    }
+  }
+}

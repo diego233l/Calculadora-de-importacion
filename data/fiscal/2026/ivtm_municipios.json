@@ -1,0 +1,409 @@
+{
+  "anio": 2026,
+  "fuente": "Ordenanzas fiscales municipales del IVTM (TRLRHL, art. 95.4)",
+  "verificar": true,
+  "verificar_motivo": "Lista de trabajo: los 50 municipios de mayor población (orden aproximado). Un coeficiente null significa 'sin verificar': el motor aplica la tarifa mínima legal (coeficiente 1) y lo avisa. No se han introducido coeficientes sin una fuente.",
+  "coeficiente_por_defecto": 1.0,
+  "municipios": [
+    {
+      "ine": "28079",
+      "nombre": "Madrid",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "08019",
+      "nombre": "Barcelona",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "46250",
+      "nombre": "València",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "41091",
+      "nombre": "Sevilla",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "50297",
+      "nombre": "Zaragoza",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "29067",
+      "nombre": "Málaga",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "30030",
+      "nombre": "Murcia",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "07040",
+      "nombre": "Palma",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "35016",
+      "nombre": "Las Palmas de Gran Canaria",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "48020",
+      "nombre": "Bilbao",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "03014",
+      "nombre": "Alacant/Alicante",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "14021",
+      "nombre": "Córdoba",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "47186",
+      "nombre": "Valladolid",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "36057",
+      "nombre": "Vigo",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "33024",
+      "nombre": "Gijón",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "08101",
+      "nombre": "L'Hospitalet de Llobregat",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "01059",
+      "nombre": "Vitoria-Gasteiz",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "15030",
+      "nombre": "A Coruña",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "03065",
+      "nombre": "Elx/Elche",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "18087",
+      "nombre": "Granada",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "08279",
+      "nombre": "Terrassa",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "08015",
+      "nombre": "Badalona",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "33044",
+      "nombre": "Oviedo",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "30016",
+      "nombre": "Cartagena",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "08187",
+      "nombre": "Sabadell",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "11020",
+      "nombre": "Jerez de la Frontera",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "28092",
+      "nombre": "Móstoles",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "38038",
+      "nombre": "Santa Cruz de Tenerife",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "31201",
+      "nombre": "Pamplona/Iruña",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "04013",
+      "nombre": "Almería",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "28005",
+      "nombre": "Alcalá de Henares",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "28058",
+      "nombre": "Fuenlabrada",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "28074",
+      "nombre": "Leganés",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "20069",
+      "nombre": "Donostia/San Sebastián",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "28065",
+      "nombre": "Getafe",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "09059",
+      "nombre": "Burgos",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "02003",
+      "nombre": "Albacete",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "39075",
+      "nombre": "Santander",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "12040",
+      "nombre": "Castelló de la Plana/Castellón de la Plana",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "28007",
+      "nombre": "Alcorcón",
+      "coeficiente": 1.964,
+      "url_ordenanza": "https://portalciudadano.ayto-alcorcon.es/portal/formularios/ordenanzas/ordenanza_21.pdf",
+      "verificar": true,
+      "fuente": "Ordenanza fiscal n.º 21 del Ayuntamiento de Alcorcón; coeficiente leído de forma indirecta (cuota de 24,79 € para menos de 8 CVF), año de la ordenanza sin confirmar"
+    },
+    {
+      "ine": "38023",
+      "nombre": "San Cristóbal de La Laguna",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "26089",
+      "nombre": "Logroño",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "06015",
+      "nombre": "Badajoz",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "37274",
+      "nombre": "Salamanca",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "21041",
+      "nombre": "Huelva",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "29069",
+      "nombre": "Marbella",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "25120",
+      "nombre": "Lleida",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "43148",
+      "nombre": "Tarragona",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "24089",
+      "nombre": "León",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    },
+    {
+      "ine": "11012",
+      "nombre": "Cádiz",
+      "coeficiente": null,
+      "url_ordenanza": null,
+      "verificar": true,
+      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+    }
+  ]
+}

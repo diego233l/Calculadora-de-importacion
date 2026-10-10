@@ -1,0 +1,8 @@
+# Datos generados en ejecución: viven en /var/lib/calculadora-importacion, nunca en el repositorio
+/var/
+*.sqlite-journal
+*.log
+
+# Descargas y temporales de las herramientas offline
+/scripts/**/descargas/
+.DS_Store

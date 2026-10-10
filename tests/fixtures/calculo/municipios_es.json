@@ -1,0 +1,94 @@
+{
+  "fuente": "prueba",
+  "provincias": {
+    "28": {
+      "nombre": "Madrid",
+      "ccaa": "MD"
+    },
+    "08": {
+      "nombre": "Barcelona",
+      "ccaa": "CT"
+    },
+    "35": {
+      "nombre": "Las Palmas",
+      "ccaa": "CN"
+    },
+    "41": {
+      "nombre": "Sevilla",
+      "ccaa": "AN"
+    },
+    "07": {
+      "nombre": "Illes Balears",
+      "ccaa": "IB"
+    },
+    "46": {
+      "nombre": "Valencia",
+      "ccaa": "VC"
+    },
+    "20": {
+      "nombre": "Gipuzkoa",
+      "ccaa": "PV"
+    },
+    "51": {
+      "nombre": "Ceuta",
+      "ccaa": "CE"
+    }
+  },
+  "municipios": [
+    [
+      "28900",
+      "Madrid de prueba",
+      40.0,
+      -3.0
+    ],
+    [
+      "28901",
+      "Pueblo aproximado",
+      40.0,
+      -3.0,
+      1
+    ],
+    [
+      "08900",
+      "Barcelona de prueba",
+      41.0,
+      -3.0
+    ],
+    [
+      "35900",
+      "Las Palmas de prueba",
+      28.0,
+      -3.0
+    ],
+    [
+      "41900",
+      "Sevilla de prueba",
+      40.0,
+      -3.0
+    ],
+    [
+      "07900",
+      "Palma de prueba",
+      40.0,
+      -3.0
+    ],
+    [
+      "46900",
+      "Valencia de prueba",
+      40.0,
+      -3.0
+    ],
+    [
+      "20900",
+      "Donostia de prueba",
+      40.0,
+      -3.0
+    ],
+    [
+      "51900",
+      "Ceuta de prueba",
+      40.0,
+      -3.0
+    ]
+  ]
+}

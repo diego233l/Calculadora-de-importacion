@@ -1,0 +1,41 @@
+{
+  "anio": 2099,
+  "fuente": "Tablas de PRUEBA con números redondos (no son datos reales)",
+  "url": "https://example.invalid/prueba",
+  "verificar": false,
+  "radio_tierra_km": 6371.0,
+  "factor_carretera": 1.25,
+  "velocidad_media_kmh": 80.0,
+  "conduciendo": {
+    "consumo_por_100km": {
+      "gasolina": 7.0,
+      "diesel": 6.0,
+      "hibrido": 5.0,
+      "phev": 6.0,
+      "glp": 8.0,
+      "gnc": 6.0,
+      "electrico": 20.0
+    },
+    "unidad_consumo": {
+      "gasolina": "l",
+      "diesel": "l",
+      "hibrido": "l",
+      "phev": "l",
+      "glp": "l",
+      "gnc": "kg",
+      "electrico": "kWh"
+    },
+    "precio_por_unidad": {
+      "gasolina": 1.5,
+      "diesel": 1.4,
+      "hibrido": 1.5,
+      "phev": 1.5,
+      "glp": 0.8,
+      "gnc": 1.0,
+      "electrico": 0.3
+    }
+  },
+  "camion": {
+    "precio_por_km": 0.5
+  }
+}

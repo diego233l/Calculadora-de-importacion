@@ -1,0 +1,39 @@
+{
+  "anio": 2099,
+  "fuente": "Tablas de PRUEBA con números redondos (no son datos reales)",
+  "url": "https://example.invalid/prueba",
+  "verificar": false,
+  "coeficiente_minimo": 1.0,
+  "coeficiente_maximo": 2.0,
+  "turismos": [
+    {
+      "cvf_desde": 0,
+      "cuota": 10.0
+    },
+    {
+      "cvf_desde": 8,
+      "cuota": 30.0
+    },
+    {
+      "cvf_desde": 12,
+      "cuota": 70.0
+    },
+    {
+      "cvf_desde": 16,
+      "cuota": 90.0
+    },
+    {
+      "cvf_desde": 20,
+      "cuota": 110.0
+    }
+  ],
+  "formulas_cvf": {
+    "fuente": "prueba",
+    "verificar": false,
+    "combustion": {
+      "coeficiente": 0.08,
+      "exponente": 0.6
+    },
+    "electrico_divisor_kw": 5.152
+  }
+}

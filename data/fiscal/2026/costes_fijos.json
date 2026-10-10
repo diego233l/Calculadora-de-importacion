@@ -1,0 +1,15 @@
+{
+  "anio": 2026,
+  "fuente": "Tasas de la DGT (Ley 19/2003 y LPGE) y precios de mercado orientativos",
+  "url": "https://sede.dgt.gob.es/es/tramites-y-multas/tasas/",
+  "verificar": true,
+  "verificar_motivo": "Todos los importes son valores por defecto EDITABLES por el usuario. La tasa de la DGT procede de fuentes secundarias de 2025-2026; el resto son estimaciones de mercado, no cifras oficiales.",
+  "partidas": [
+    {"clave": "tasa_dgt", "concepto": "Tasa de la DGT (matriculación)", "importe": 99.77, "estimacion": false, "verificar": true, "fuente": "Tasa 1.1 de matriculación, Ley 19/2003 (importe de 2025-2026 según fuentes secundarias)"},
+    {"clave": "itv_importacion", "concepto": "ITV de importación", "importe": 80.00, "estimacion": true, "verificar": true, "fuente": "Estimación: las fuentes citan 30-80 €; varía según la comunidad y la estación"},
+    {"clave": "coc_ficha_tecnica", "concepto": "Certificado de conformidad (COC) o ficha técnica", "importe": 150.00, "estimacion": true, "verificar": true, "fuente": "Estimación: de 0 € (si el coche trae el COC) a 300 € si hay que pedirlo al fabricante"},
+    {"clave": "placas", "concepto": "Placas de matrícula", "importe": 30.00, "estimacion": true, "verificar": true, "fuente": "Estimación de mercado"},
+    {"clave": "gestoria", "concepto": "Gestoría", "importe": 200.00, "estimacion": true, "verificar": true, "fuente": "Estimación de mercado: suele oscilar entre 150 y 300 €"},
+    {"clave": "matricula_exportacion", "concepto": "Matrícula de exportación alemana (placas de aduana y seguro)", "importe": 120.00, "estimacion": true, "verificar": true, "fuente": "Estimación de mercado en Alemania"}
+  ]
+}

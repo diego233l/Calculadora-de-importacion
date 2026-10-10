@@ -1,0 +1,56 @@
+{
+  "anio": 2099,
+  "fuente": "Tablas de PRUEBA con números redondos (no son datos reales)",
+  "url": "https://example.invalid/prueba",
+  "verificar": false,
+  "partidas": [
+    {
+      "clave": "tasa_dgt",
+      "concepto": "Tasa de la DGT",
+      "importe": 100.0,
+      "estimacion": false,
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    {
+      "clave": "itv_importacion",
+      "concepto": "ITV de importación",
+      "importe": 50.0,
+      "estimacion": true,
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    {
+      "clave": "coc_ficha_tecnica",
+      "concepto": "COC o ficha técnica",
+      "importe": 0.0,
+      "estimacion": true,
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    {
+      "clave": "placas",
+      "concepto": "Placas",
+      "importe": 30.0,
+      "estimacion": true,
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    {
+      "clave": "gestoria",
+      "concepto": "Gestoría",
+      "importe": 200.0,
+      "estimacion": true,
+      "verificar": false,
+      "fuente": "prueba"
+    },
+    {
+      "clave": "matricula_exportacion",
+      "concepto": "Matrícula de exportación",
+      "importe": 120.0,
+      "estimacion": true,
+      "verificar": false,
+      "fuente": "prueba"
+    }
+  ]
+}

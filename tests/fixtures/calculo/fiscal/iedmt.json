@@ -1,0 +1,76 @@
+{
+  "anio": 2099,
+  "fuente": "Tablas de PRUEBA con números redondos (no son datos reales)",
+  "url": "https://example.invalid/prueba",
+  "verificar": false,
+  "aviso_co2_nedc_antes_de": "2019-01-01",
+  "regimenes": {
+    "peninsula_baleares": {
+      "fuente": "prueba",
+      "verificar": false,
+      "tramos": [
+        {
+          "desde": 0,
+          "desde_inclusivo": true,
+          "tipo": 0.0
+        },
+        {
+          "desde": 120,
+          "desde_inclusivo": false,
+          "tipo": 5.0
+        },
+        {
+          "desde": 160,
+          "desde_inclusivo": true,
+          "tipo": 10.0
+        },
+        {
+          "desde": 200,
+          "desde_inclusivo": true,
+          "tipo": 15.0
+        }
+      ]
+    },
+    "canarias": {
+      "fuente": "prueba",
+      "verificar": false,
+      "tramos": [
+        {
+          "desde": 0,
+          "desde_inclusivo": true,
+          "tipo": 0.0
+        },
+        {
+          "desde": 120,
+          "desde_inclusivo": false,
+          "tipo": 4.0
+        },
+        {
+          "desde": 160,
+          "desde_inclusivo": true,
+          "tipo": 8.0
+        },
+        {
+          "desde": 200,
+          "desde_inclusivo": true,
+          "tipo": 12.0
+        }
+      ]
+    }
+  },
+  "base_imponible_usados_extranjero": {
+    "fuente": "prueba",
+    "verificar": false,
+    "activa": true,
+    "formula": "BI = VM / (1 + (iva + iedmt + otros) / 100)",
+    "tipos_otros": 0.0
+  },
+  "incrementos_autonomicos": {
+    "fuente": "prueba",
+    "verificar": false,
+    "efectivos": {},
+    "candidatos_sin_verificar": {
+      "CT": "incremento de prueba"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "anio": 2026,
+  "fuente": "Ley 37/1992 del IVA, arts. 13.2.º y 25 (medios de transporte nuevos y adquisiciones intracomunitarias)",
+  "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1992-28740",
+  "verificar": true,
+  "verificar_motivo": "Umbrales de 'medio de transporte nuevo' (6 meses o 6.000 km) tomados de la especificación del proyecto; comprobar el texto del art. 13.2.º b) y si el límite de km es 'más de' o 'menos de' 6.000. Tipo de Canarias: IGIC general.",
+  "tipo_iva_es": 21.0,
+  "tipo_igic_canarias": 7.0,
+  "tipo_iva_alemania": 19.0,
+  "nuevo": {
+    "meses_max": 6,
+    "km_max": 6000,
+    "criterio": "Es 'nuevo' si NO han pasado más de meses_max meses desde la primera matriculación O si tiene km_max km o menos."
+  },
+  "modelo": "309"
+}

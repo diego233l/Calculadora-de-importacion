@@ -1,0 +1,54 @@
+{
+  "anio": 2026,
+  "fuente": "Ley 38/1992 de Impuestos Especiales, art. 70.1 (tipos por emisiones oficiales de CO2, ciclo WLTP) y arts. 69-70 (base imponible)",
+  "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1992-28741",
+  "verificar": true,
+  "verificar_motivo": "Tipos estatales de la especificación del proyecto y de fuentes secundarias. Pendiente de confirmar en el texto consolidado: (1) si 160 y 200 g/km pertenecen al tramo superior (la ley habla de 'iguales o superiores a'), (2) tipos de Canarias, (3) tipos autonómicos.",
+  "aviso_co2_nedc_antes_de": "2019-01-01",
+  "regimenes": {
+    "peninsula_baleares": {
+      "fuente": "Ley 38/1992, art. 70.1, epígrafes 1.º a 4.º",
+      "verificar": true,
+      "tramos": [
+        {"desde": 0, "desde_inclusivo": true, "tipo": 0.0},
+        {"desde": 120, "desde_inclusivo": false, "tipo": 4.75},
+        {"desde": 160, "desde_inclusivo": true, "tipo": 9.75},
+        {"desde": 200, "desde_inclusivo": true, "tipo": 14.75}
+      ]
+    },
+    "canarias": {
+      "fuente": "Ley 38/1992, art. 70.1 (tipos reducidos para Canarias)",
+      "verificar": true,
+      "tramos": [
+        {"desde": 0, "desde_inclusivo": true, "tipo": 0.0},
+        {"desde": 120, "desde_inclusivo": false, "tipo": 3.75},
+        {"desde": 160, "desde_inclusivo": true, "tipo": 8.75},
+        {"desde": 200, "desde_inclusivo": true, "tipo": 13.75}
+      ]
+    }
+  },
+  "base_imponible_usados_extranjero": {
+    "fuente": "Orden HAC/1501/2025, regla segunda: minoración de la imposición indirecta soportada para medios de transporte usados matriculados previamente en el extranjero",
+    "url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26357",
+    "verificar": true,
+    "verificar_motivo": "La fórmula BI = VM / (1 + (tipo IVA + tipo IEDMT + otros tipos)) figura en las ediciones de 2019 a 2024 de la orden. Para 2026 la orden dice que mantiene el mecanismo, pero no se ha podido leer su texto literal. CONFIRMAR antes de dar la cifra por buena.",
+    "activa": true,
+    "formula": "BI = VM / (1 + (tipo_iva + tipo_iedmt + tipos_otros) / 100)",
+    "tipos_otros": 0.0
+  },
+  "incrementos_autonomicos": {
+    "fuente": "Ley 38/1992, art. 70.1 (las CCAA pueden incrementar los tipos hasta un 15 %)",
+    "verificar": true,
+    "efectivos": {},
+    "candidatos_sin_verificar": {
+      "AN": "Fuentes en conflicto: 14,75 % (sin incremento) o 16,90 % en el tramo superior",
+      "AS": "16 % en el tramo superior (una fuente)",
+      "CT": "16 % en el tramo superior (varias fuentes)",
+      "IB": "16 % en el tramo superior (una fuente)",
+      "MC": "15,9 % en el tramo superior (una fuente)",
+      "VC": "16 % en el tramo superior (una fuente)",
+      "CB": "Fuentes en conflicto: 15 % en el tramo superior u otros tipos"
+    },
+    "nota": "Mientras 'efectivos' esté vacío el motor aplica los tipos estatales y avisa si la CCAA figura en 'candidatos_sin_verificar'."
+  }
+}
