@@ -36,11 +36,20 @@ final class Config
         return is_string($entorno) && $entorno !== '' ? rtrim($entorno, '/') : self::DIR_VAR_POR_DEFECTO;
     }
 
-    /** Datos del titular para el aviso legal (data/sitio.json). */
+    /**
+     * Datos del titular para el aviso legal y la política de privacidad. Valores por defecto en data/sitio.json (en el repositorio,
+     * vacíos); los reales van en <dirVar>/sitio.json, fuera del repositorio, para que `git pull` nunca choque con ellos.
+     *
+     * @return array<string, string>
+     */
     public static function sitio(): array
     {
-        $texto = @file_get_contents(self::dirData() . '/sitio.json');
-        $datos = $texto !== false ? json_decode($texto, true) : null;
-        return is_array($datos) ? $datos : [];
+        $leer = static function (string $ruta): array {
+            $texto = @file_get_contents($ruta);
+            $datos = $texto !== false ? json_decode($texto, true) : null;
+            return is_array($datos) ? $datos : [];
+        };
+        $local = array_filter($leer(self::dirVar() . '/sitio.json'), static fn(mixed $v): bool => is_string($v) && trim($v) !== '');
+        return array_merge($leer(self::dirData() . '/sitio.json'), $local);
     }
 }

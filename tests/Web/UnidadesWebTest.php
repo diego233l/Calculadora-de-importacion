@@ -190,3 +190,24 @@ prueba('X8. Un almacén de una versión anterior (contadores sin «tam») se act
     Afirmar::verdadero($a->permitir('otra', 1, 1, 1_000_000_030));
     Afirmar::falso($a->permitir('ip', 2, 60, 1_000_000_031), 'el contador del minuto sigue vivo');
 });
+
+prueba('X9. Los datos del titular se leen del directorio de datos (fuera del repositorio) y mandan sobre los del repositorio', function (): void {
+    $dir = dirVarPrueba('sitio');
+    $antes = getenv('CALCULADORA_VAR');
+    putenv('CALCULADORA_VAR=' . $dir);
+    try {
+        $base = CalculadoraImportacion\Web\Config::sitio();
+        Afirmar::igual('', $base['titular'] ?? '', 'sin fichero local: el del repositorio, vacío');
+        Afirmar::igual('Calculadora de importación', $base['nombre_sitio'] ?? '');
+        file_put_contents($dir . '/sitio.json', json_encode(['titular' => 'Ana Pérez', 'nif' => '', 'email' => 'ana@example.org', 'x' => ['no']]));
+        $s = CalculadoraImportacion\Web\Config::sitio();
+        Afirmar::igual('Ana Pérez', $s['titular']);
+        Afirmar::igual('ana@example.org', $s['email']);
+        Afirmar::igual('', $s['nif'], 'un valor vacío no pisa al del repositorio');
+        Afirmar::falso(isset($s['x']), 'solo textos');
+        file_put_contents($dir . '/sitio.json', '{no es json');
+        Afirmar::igual('', CalculadoraImportacion\Web\Config::sitio()['titular'], 'un fichero roto se ignora');
+    } finally {
+        putenv($antes === false ? 'CALCULADORA_VAR' : 'CALCULADORA_VAR=' . $antes);
+    }
+});

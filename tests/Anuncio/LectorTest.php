@@ -19,10 +19,13 @@ function fixturesAnuncios(): array
 {
     $dir = __DIR__ . '/../fixtures/anuncios';
     $r = [];
-    foreach (glob($dir . '/*.json') ?: [] as $json) {
+    // Las sintéticas, y las páginas reales que se vayan guardando en reales/
+    foreach (array_merge(glob($dir . '/*.json') ?: [], glob($dir . '/reales/*.json') ?: []) as $json) {
         $base = substr($json, 0, -5);
         $fichero = is_file($base . '.html') ? $base . '.html' : $base . '.txt';
-        $r[basename($base)] = ['contenido' => (string) file_get_contents($fichero), 'esperado' => json_decode((string) file_get_contents($json), true)];
+        $r[basename(dirname($json)) === 'reales' ? 'reales/' . basename($base) : basename($base)] = [
+            'contenido' => (string) file_get_contents($fichero), 'esperado' => json_decode((string) file_get_contents($json), true),
+        ];
     }
     ksort($r);
     return $r;
