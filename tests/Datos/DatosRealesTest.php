@@ -177,3 +177,25 @@ prueba('D9. Año fiscal: se usa la carpeta del año pedido o la más reciente an
     Afirmar::igual(2026, Tablas::anioDisponible(dataDir(), 2030));
     Afirmar::igual(2026, Tablas::anioDisponible(dataDir(), 2020), 'sin año anterior se usa el más antiguo disponible');
 });
+
+prueba('D10. Datos oficiales verificados: tipos autonómicos del IEDMT (AEAT) y tasa de la DGT', function (): void {
+    $t = Tablas::cargar(dataDir(), 2026);
+    $efectivos = $t['iedmt']['incrementos_autonomicos']['efectivos'];
+    // AEAT, «Tipos impositivos»: Asturias, Baleares, Cataluña y Valencia 16 %, Murcia 15,9 %, Cantabria 15 % (epígrafe 4.º)
+    Afirmar::igual(['AS' => 16.0, 'IB' => 16.0, 'CB' => 15.0, 'CT' => 16.0, 'MC' => 15.9, 'VC' => 16.0],
+        array_map(fn($c) => $c['200'], $efectivos));
+    Afirmar::falso(isset($efectivos['AN']), 'Andalucía mantiene el tipo estatal');
+    $base = [
+        'fecha_matriculacion' => '2021-03-01', 'fecha_calculo' => '2026-10-10', 'km' => 80000, 'cc' => 3000, 'cilindros' => 6,
+        'combustible' => 'gasolina', 'co2_wltp' => 230, 'precio' => 30000, 'vendedor' => 'particular', 'cp_vendedor' => '80331',
+        'fila_boe' => ['precio' => 60000],
+    ];
+    $tipo = fn(string $municipio) => partida(Calculadora::calcular($base + ['municipio' => $municipio], $t), 'iedmt')['tipo'];
+    Afirmar::igual(16.0, $tipo('08019'), 'Barcelona');
+    Afirmar::igual(14.75, $tipo('28079'), 'Madrid');
+    Afirmar::igual(14.75, $tipo('41091'), 'Sevilla');
+    Afirmar::igual(13.75, $tipo('35016'), 'Las Palmas: tipo canario');
+    $tasa = array_values(array_filter($t['costes_fijos']['partidas'], fn($p) => $p['clave'] === 'tasa_dgt'))[0];
+    Afirmar::igual(99.77, $tasa['importe']);
+    Afirmar::falso($tasa['estimacion']);
+});

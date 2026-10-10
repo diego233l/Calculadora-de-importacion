@@ -1,8 +1,7 @@
 {
   "anio": 2026,
   "fuente": "Parámetros de estimación del proyecto (no son datos oficiales)",
-  "verificar": true,
-  "verificar_motivo": "Todos los valores son supuestos por defecto, editables en la página. Precios de combustible y de camión revisables cada año.",
+  "verificar": false,
   "radio_tierra_km": 6371.0,
   "factor_carretera": 1.25,
   "velocidad_media_kmh": 80.0,
@@ -17,7 +16,13 @@
       "electrico": 18.0
     },
     "unidad_consumo": {
-      "gasolina": "l", "diesel": "l", "hibrido": "l", "phev": "l", "glp": "l", "gnc": "kg", "electrico": "kWh"
+      "gasolina": "l",
+      "diesel": "l",
+      "hibrido": "l",
+      "phev": "l",
+      "glp": "l",
+      "gnc": "kg",
+      "electrico": "kWh"
     },
     "precio_por_unidad": {
       "gasolina": 1.55,
@@ -25,7 +30,7 @@
       "hibrido": 1.55,
       "phev": 1.55,
       "glp": 0.85,
-      "gnc": 1.30,
+      "gnc": 1.3,
       "electrico": 0.45
     },
     "nota": "No incluye peajes, billete de vuelta ni alojamiento: se introducen en 'otros gastos del viaje'."
@@ -33,5 +38,6 @@
   "camion": {
     "precio_por_km": 0.65,
     "nota": "Precio orientativo de un camión portavehículos por km de carretera."
-  }
+  },
+  "nota": "Parámetros de estimación por defecto, editables en la página. No son normas: se marcan como estimación en cada partida. Los precios de combustible y de camión conviene revisarlos cada año."
 }

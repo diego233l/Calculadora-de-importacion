@@ -6,7 +6,8 @@ namespace CalculadoraImportacion\Calculo;
 
 /**
  * Una línea del desglose. Siempre las mismas claves, para que la vista no tenga que adivinar:
- *   clave, concepto, importe, base, tipo, tipo_unidad, fuente, url, explicacion, verificar, estado, motivo
+ *   clave, concepto, importe, base, tipo, tipo_unidad, fuente, url, explicacion, verificar, estimacion, estado, motivo
+ * verificar = el dato de la tabla aún no se ha contrastado con la norma; estimacion = es un supuesto editable (no una norma).
  * estado = 'ok' | 'no_calculable' (en ese caso importe es null y motivo explica qué falta).
  */
 final class Partida
@@ -21,7 +22,8 @@ final class Partida
         string $fuente,
         string $explicacion,
         bool $verificar,
-        ?string $url = null
+        ?string $url = null,
+        bool $estimacion = false
     ): array {
         return [
             'clave' => $clave,
@@ -34,6 +36,7 @@ final class Partida
             'url' => $url,
             'explicacion' => $explicacion,
             'verificar' => $verificar,
+            'estimacion' => $estimacion,
             'estado' => 'ok',
             'motivo' => null,
         ];
@@ -58,6 +61,7 @@ final class Partida
             'url' => $url,
             'explicacion' => $motivo,
             'verificar' => $verificar,
+            'estimacion' => false,
             'estado' => 'no_calculable',
             'motivo' => $motivo,
         ];

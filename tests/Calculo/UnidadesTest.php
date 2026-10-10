@@ -88,6 +88,15 @@ prueba('U4. Reglas de ITP por CVF y antigüedad: límites inclusivos/exclusivos'
     Afirmar::falso(ItpIva::reglaCumple(['antiguedad_max' => 3], null, 3));
     Afirmar::igual(null, ItpIva::reglaCumple(['cvf_min' => 15], null, 0), 'sin CVF no se puede decidir');
     Afirmar::verdadero(ItpIva::reglaCumple([], null, 0), 'regla sin condiciones');
+    // «Superen los 15 caballos»: estrictamente más de 15
+    Afirmar::falso(ItpIva::reglaCumple(['cvf_mayor_que' => 15], 15.0, 0));
+    Afirmar::verdadero(ItpIva::reglaCumple(['cvf_mayor_que' => 15], 15.01, 0));
+    Afirmar::verdadero(ItpIva::reglaCumple(['cvf_menor_igual' => 15], 15.0, 0));
+    Afirmar::falso(ItpIva::reglaCumple(['cvf_menor_igual' => 15], 15.01, 0));
+    // Combustible
+    Afirmar::verdadero(ItpIva::reglaCumple(['combustible_en' => ['electrico']], null, 0, 'electrico'));
+    Afirmar::falso(ItpIva::reglaCumple(['combustible_en' => ['electrico']], null, 0, 'diesel'));
+    Afirmar::igual(null, ItpIva::reglaCumple(['combustible_en' => ['electrico']], null, 0, null));
 });
 
 prueba('U5. Medio de transporte nuevo: 6 meses O 6.000 km, con sus fronteras', function (): void {

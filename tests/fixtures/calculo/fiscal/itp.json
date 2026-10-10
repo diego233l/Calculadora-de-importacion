@@ -58,9 +58,24 @@
     },
     "PV": {
       "tipo_general": 4.0,
-      "reglas": [],
       "verificar": false,
-      "fuente": "prueba"
+      "fuente": "prueba",
+      "reglas": [
+        {
+          "si": {
+            "combustible_en": [
+              "electrico"
+            ]
+          },
+          "tipo": 1.0
+        },
+        {
+          "si": {
+            "cvf_mayor_que": 15
+          },
+          "tipo": 8.0
+        }
+      ]
     },
     "AN": {
       "tipo_general": null,

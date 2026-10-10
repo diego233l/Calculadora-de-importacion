@@ -68,9 +68,10 @@
   "incrementos_autonomicos": {
     "fuente": "prueba",
     "verificar": false,
-    "efectivos": {},
-    "candidatos_sin_verificar": {
-      "CT": "incremento de prueba"
+    "efectivos": {
+      "CT": {
+        "200": 20.0
+      }
     }
   }
 }

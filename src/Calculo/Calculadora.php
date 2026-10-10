@@ -69,6 +69,7 @@ final class Calculadora
         $total = 0.0;
         $completo = true;
         $pendiente = false;
+        $estimaciones = false;
         foreach ($partidas as $p) {
             if ($p['estado'] === 'ok') {
                 $total += $p['importe'];
@@ -76,6 +77,7 @@ final class Calculadora
                 $completo = false;
             }
             $pendiente = $pendiente || $p['verificar'];
+            $estimaciones = $estimaciones || $p['estimacion'];
         }
         $total = Dinero::redondear($total);
         if (!$completo) {
@@ -93,6 +95,7 @@ final class Calculadora
             'precio_anuncio' => $n['precio'],
             'completo' => $completo,
             'verificar_pendiente' => $pendiente,
+            'contiene_estimaciones' => $estimaciones,
             'avisos' => $avisos,
             'derivados' => [
                 'nuevo' => $clasif['nuevo'],

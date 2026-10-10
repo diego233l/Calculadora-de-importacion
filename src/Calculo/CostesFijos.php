@@ -20,7 +20,8 @@ final class CostesFijos
                 : ($p['estimacion'] ? 'Valor por defecto: estimación orientativa, editable.' : 'Valor por defecto, editable.');
             $partidas[] = Partida::ok(
                 $p['clave'], $p['concepto'], $importe, null, null, null,
-                $p['fuente'], $origen, !$editado && (Partida::pendiente($p) || Partida::pendiente($t)), $t['url'] ?? null
+                $p['fuente'], $origen, !$editado && (Partida::pendiente($p) || Partida::pendiente($t)), $t['url'] ?? null,
+                !$editado && !empty($p['estimacion'])
             );
         }
         return ['partidas' => $partidas];

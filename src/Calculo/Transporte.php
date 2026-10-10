@@ -63,7 +63,7 @@ final class Transporte
             $importe = Dinero::redondear($carretera * $precioKm);
             $explicacion = sprintf('%s %s km x %s €/km = %s.', $resumen, Partida::num($carretera, 0), Partida::num($precioKm), Partida::eur($importe));
             return [
-                'partidas' => [Partida::ok('transporte', $concepto, $importe, round($carretera, 2), $precioKm, '€/km', $fuente, $explicacion, $verificar)],
+                'partidas' => [Partida::ok('transporte', $concepto, $importe, round($carretera, 2), $precioKm, '€/km', $fuente, $explicacion, $verificar, null, true)],
                 'avisos' => $avisos,
                 'distancia' => $distancia,
             ];
@@ -80,12 +80,12 @@ final class Transporte
             $resumen, Partida::num($consumo), $unidad, Partida::num($carretera, 0),
             Partida::num($carretera * $consumo / 100, 1), $unidad, Partida::num($precioUd), $unidad, Partida::eur($energia)
         );
-        $partidas = [Partida::ok('transporte', $concepto, $energia, round($carretera, 2), $precioUd, '€/' . $unidad, $fuente, $explicacion, $verificar)];
+        $partidas = [Partida::ok('transporte', $concepto, $energia, round($carretera, 2), $precioUd, '€/' . $unidad, $fuente, $explicacion, $verificar, null, true)];
 
         $otros = Dinero::redondear(($p['peajes'] ?? 0.0) + ($p['billete_vuelta'] ?? 0.0) + ($p['alojamiento'] ?? 0.0));
         if ($otros > 0) {
             $partidas[] = Partida::ok('otros_gastos_viaje', 'Otros gastos del viaje (peajes, billete de vuelta, alojamiento)', $otros, null, null, null,
-                'Importes indicados por ti', 'Suma de peajes, billete de vuelta y alojamiento que has introducido.', false);
+                'Importes indicados por ti', 'Suma de peajes, billete de vuelta y alojamiento que has introducido.', false, null, false);
         }
         return ['partidas' => $partidas, 'avisos' => $avisos, 'distancia' => $distancia];
     }

@@ -30,16 +30,6 @@ final class Iedmt
         $fuente = $nodoRegimen['fuente'];
         $url = $t['url'] ?? null;
 
-        if (array_key_exists($n['ccaa'], $t['incrementos_autonomicos']['candidatos_sin_verificar'] ?? [])
-            && !array_key_exists($n['ccaa'], $t['incrementos_autonomicos']['efectivos'] ?? [])) {
-            $verificar = true;
-            $avisos[] = Partida::aviso(
-                'iedmt_incremento_autonomico',
-                'Esta comunidad autónoma podría aplicar un tipo de matriculación superior al estatal (hasta un 15 % más). '
-                . 'Se ha aplicado el tipo estatal: confirma el importe con tu gestoría.'
-            );
-        }
-
         if ($n['combustible'] === 'electrico') {
             $co2 = 0.0;
         } elseif ($n['co2_wltp'] === null) {
@@ -62,7 +52,15 @@ final class Iedmt
             }
         }
 
-        $tipo = self::tipoPorCo2($nodoRegimen['tramos'], $co2);
+        $tramo = self::tramoPorCo2($nodoRegimen['tramos'], $co2);
+        $tipoEstatal = (float) $tramo['tipo'];
+        // Art. 70.2.a: rigen los tipos que haya aprobado la comunidad autónoma (clave: el límite inferior del tramo)
+        $tipoCcaa = $t['incrementos_autonomicos']['efectivos'][$n['ccaa']][(string) (int) $tramo['desde']] ?? null;
+        $tipo = $tipoCcaa !== null ? (float) $tipoCcaa : $tipoEstatal;
+        if ($tipoCcaa !== null) {
+            $fuente .= ' | Tipo autonómico: ' . $t['incrementos_autonomicos']['fuente'];
+            $verificar = $verificar || Partida::pendiente($t['incrementos_autonomicos']);
+        }
 
         if ($ctx['nuevo']) {
             $bi = Dinero::redondear($ctx['precio_neto']);
@@ -95,9 +93,12 @@ final class Iedmt
         }
 
         $importe = Dinero::redondear($bi * $tipo / 100);
-        $tramo = $co2 <= 0 && $n['combustible'] === 'electrico' ? 'Eléctrico (0 g/km)' : Partida::num($co2) . ' g/km de CO2';
+        $descripcionCo2 = $n['combustible'] === 'electrico' ? 'Eléctrico (0 g/km)' : Partida::num($co2) . ' g/km de CO2';
+        $origenTipo = $tipoCcaa !== null
+            ? 'tipo de tu comunidad autónoma; el estatal es ' . Partida::num($tipoEstatal) . ' %'
+            : ($regimen === 'canarias' ? 'Canarias' : 'península y Baleares');
         $explicacion = sprintf('%s. %s Tipo %s %% (%s). %s x %s %% = %s.',
-            $tramo, $explicacionBase, Partida::num($tipo), $regimen === 'canarias' ? 'Canarias' : 'península y Baleares',
+            $descripcionCo2, $explicacionBase, Partida::num($tipo), $origenTipo,
             Partida::eur($bi), Partida::num($tipo), Partida::eur($importe));
 
         return [
@@ -107,17 +108,23 @@ final class Iedmt
         ];
     }
 
-    /** Tipo del tramo cuyo límite inferior (inclusivo o no) cumple el CO2; gana el tramo más alto que lo cumple. */
-    public static function tipoPorCo2(array $tramos, float $co2): float
+    /** Tramo cuyo límite inferior (inclusivo o no) cumple el CO2; gana el tramo más alto que lo cumple. */
+    public static function tramoPorCo2(array $tramos, float $co2): array
     {
         usort($tramos, static fn(array $a, array $b): int => $a['desde'] <=> $b['desde']);
-        $tipo = (float) $tramos[0]['tipo'];
+        $elegido = $tramos[0];
         foreach ($tramos as $tr) {
             $cumple = !empty($tr['desde_inclusivo']) ? $co2 >= $tr['desde'] : $co2 > $tr['desde'];
             if ($cumple) {
-                $tipo = (float) $tr['tipo'];
+                $elegido = $tr;
             }
         }
-        return $tipo;
+        return $elegido;
+    }
+
+    /** Tipo estatal del tramo que corresponde a ese CO2. */
+    public static function tipoPorCo2(array $tramos, float $co2): float
+    {
+        return (float) self::tramoPorCo2($tramos, $co2)['tipo'];
     }
 }

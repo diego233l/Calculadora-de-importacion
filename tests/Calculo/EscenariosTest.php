@@ -56,7 +56,8 @@ prueba('2. Diésel usado de 12 años en Cataluña: reducción de ITP por antigü
     Afirmar::euros(81.73, partida($r, 'transporte')['importe']);
     Afirmar::euros(3879.23, $r['total']);
     Afirmar::verdadero(in_array('ivtm_tarifa_minima', codigosAviso($r), true));
-    Afirmar::verdadero(in_array('iedmt_incremento_autonomico', codigosAviso($r), true), 'Cataluña figura entre las CCAA con posible incremento');
+    // 150 g/km es el tramo del 5 %: el incremento autonómico de Cataluña solo afecta al tramo de 200 g/km o más
+    Afirmar::igual(5.0, partida($r, 'iedmt')['tipo']);
 });
 
 prueba('3. Eléctrico usado de particular: IEDMT 0 %, CVF por kW', function (): void {
@@ -297,9 +298,50 @@ prueba('20. El resultado es una función pura: mismas entradas, mismo resultado'
     Afirmar::igual($a, $b);
     foreach ($a['partidas'] as $p) {
         Afirmar::igual(
-            ['clave', 'concepto', 'importe', 'base', 'tipo', 'tipo_unidad', 'fuente', 'url', 'explicacion', 'verificar', 'estado', 'motivo'],
+            ['clave', 'concepto', 'importe', 'base', 'tipo', 'tipo_unidad', 'fuente', 'url', 'explicacion', 'verificar', 'estimacion', 'estado', 'motivo'],
             array_keys($p),
             'Claves de la partida ' . $p['clave']
         );
     }
+});
+
+prueba('21. IEDMT: la comunidad autónoma puede fijar un tipo propio en el tramo de 200 g/km o más', function (): void {
+    // Valor venal 4.000 (diésel de 12 años). 210 g/km -> tramo de >= 200 g/km.
+    // Cataluña (tipo de prueba 20 % frente al estatal 15 %): base = 4.000 / (1 + (20 + 20)/100) = 4.000 / 1,40 = 2.857,14
+    //   cuota = 2.857,14 x 20 % = 571,43.
+    // Madrid (sin tipo propio, 15 %): base = 4.000 / 1,35 = 2.962,96 -> cuota = 444,44.
+    $comun = ['fecha_matriculacion' => '2014-01-20', 'co2_wltp' => 210, 'fila_boe' => ['precio' => 20000]];
+    $ct = Calculadora::calcular(entradaBase($comun + ['municipio' => '08900']), tablasPrueba());
+    Afirmar::euros(2857.14, partida($ct, 'iedmt')['base']);
+    Afirmar::euros(571.43, partida($ct, 'iedmt')['importe']);
+    Afirmar::igual(20.0, partida($ct, 'iedmt')['tipo']);
+    Afirmar::contiene('el estatal es 15 %', partida($ct, 'iedmt')['explicacion']);
+    $md = Calculadora::calcular(entradaBase($comun), tablasPrueba());
+    Afirmar::euros(2962.96, partida($md, 'iedmt')['base']);
+    Afirmar::euros(444.44, partida($md, 'iedmt')['importe']);
+    Afirmar::igual(15.0, partida($md, 'iedmt')['tipo']);
+});
+
+prueba('22. ITP con reglas por combustible y por caballos fiscales (más de 15 CVF, eléctricos al 1 %)', function (): void {
+    // Valor venal 13.000. País Vasco de prueba: general 4 %; más de 15 CVF 8 %; eléctrico 1 %.
+    $gasolina = Calculadora::calcular(entradaBase(['municipio' => '20900']), tablasPrueba());          // CVF 13,31 -> 4 % = 520
+    Afirmar::euros(520, partida($gasolina, 'itp_iva')['importe']);
+    $grande = Calculadora::calcular(entradaBase(['municipio' => '20900', 'cc' => 2500, 'cilindros' => 6]), tablasPrueba());   // CVF 17,91 -> 8 % = 1.040
+    Afirmar::euros(1040, partida($grande, 'itp_iva')['importe']);
+    $electrico = Calculadora::calcular(entradaBase(['municipio' => '20900', 'combustible' => 'electrico', 'co2_wltp' => null,
+        'cc' => null, 'cilindros' => null, 'kw' => 100]), tablasPrueba());                                // eléctrico -> 1 % = 130
+    Afirmar::euros(130, partida($electrico, 'itp_iva')['importe']);
+    Afirmar::igual(1.0, partida($electrico, 'itp_iva')['tipo']);
+});
+
+prueba('23. Estimaciones: los valores por defecto editables se marcan; las cifras oficiales y las del usuario, no', function (): void {
+    $r = Calculadora::calcular(entradaBase(), tablasPrueba());
+    Afirmar::verdadero(partida($r, 'itv_importacion')['estimacion']);
+    Afirmar::verdadero(partida($r, 'transporte')['estimacion']);
+    Afirmar::falso(partida($r, 'tasa_dgt')['estimacion'], 'la tasa de la DGT es una cifra oficial');
+    Afirmar::falso(partida($r, 'precio')['estimacion']);
+    Afirmar::falso(partida($r, 'iedmt')['estimacion']);
+    Afirmar::verdadero($r['contiene_estimaciones']);
+    $editado = Calculadora::calcular(entradaBase(['costes_fijos' => ['itv_importacion' => 45]]), tablasPrueba());
+    Afirmar::falso(partida($editado, 'itv_importacion')['estimacion'], 'si el usuario lo cambia, ya no es una estimación nuestra');
 });

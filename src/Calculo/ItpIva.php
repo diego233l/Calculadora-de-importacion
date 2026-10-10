@@ -134,7 +134,7 @@ final class ItpIva
 
         $regla = null;
         foreach ($fila['reglas'] ?? [] as $r) {
-            $cumple = self::reglaCumple($r['si'] ?? [], $ctx['cvf'], $ctx['antiguedad_anios']);
+            $cumple = self::reglaCumple($r['si'] ?? [], $ctx['cvf'], $ctx['antiguedad_anios'], $n['combustible']);
             if ($cumple === null) {
                 return ['partidas' => [Partida::noCalculable('itp_iva', $concepto,
                     'El ITP de esta comunidad depende de los caballos fiscales y no se han podido calcular.', $fuente, $verificar, $url)], 'avisos' => []];
@@ -172,16 +172,33 @@ final class ItpIva
         return ['partidas' => [Partida::ok('itp_iva', $concepto, $importe, $base, $tipo, '%', $fuente, $explicacion, $verificar, $url)], 'avisos' => []];
     }
 
-    /** true / false, o null si la regla necesita los CVF y no se conocen. */
-    public static function reglaCumple(array $si, ?float $cvf, int $antiguedad): ?bool
+    /**
+     * true / false, o null si la regla necesita un dato que no se conoce (los CVF o el combustible).
+     * Condiciones: cvf_min (>=), cvf_mayor_que (>), cvf_max (<), cvf_menor_igual (<=),
+     * antiguedad_min (>=), antiguedad_max (<), combustible_en (lista).
+     */
+    public static function reglaCumple(array $si, ?float $cvf, int $antiguedad, ?string $combustible = null): ?bool
     {
-        if ((isset($si['cvf_min']) || isset($si['cvf_max'])) && $cvf === null) {
+        $usaCvf = isset($si['cvf_min']) || isset($si['cvf_max']) || isset($si['cvf_mayor_que']) || isset($si['cvf_menor_igual']);
+        if ($usaCvf && $cvf === null) {
             return null;
+        }
+        if (isset($si['combustible_en']) && $combustible === null) {
+            return null;
+        }
+        if (isset($si['combustible_en']) && !in_array($combustible, $si['combustible_en'], true)) {
+            return false;
         }
         if (isset($si['cvf_min']) && $cvf < $si['cvf_min']) {
             return false;
         }
+        if (isset($si['cvf_mayor_que']) && $cvf <= $si['cvf_mayor_que']) {
+            return false;
+        }
         if (isset($si['cvf_max']) && $cvf >= $si['cvf_max']) {
+            return false;
+        }
+        if (isset($si['cvf_menor_igual']) && $cvf > $si['cvf_menor_igual']) {
             return false;
         }
         if (isset($si['antiguedad_min']) && $antiguedad < $si['antiguedad_min']) {

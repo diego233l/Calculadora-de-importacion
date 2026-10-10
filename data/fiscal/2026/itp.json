@@ -5,24 +5,206 @@
   "verificar": true,
   "verificar_motivo": "Las fuentes secundarias consultadas se contradicen en la mayoría de comunidades. Solo se rellena el tipo donde coinciden al menos dos fuentes (MD, NC, PV, CT, CN, VC). En el resto tipo_general es null y las cifras halladas van en 'candidatos'. Comprobar cada tipo en la norma autonómica vigente, incluidos tramos por caballos fiscales y reducciones por antigüedad.",
   "base": "valor_venal",
-  "reglas_formato": "Cada regla: {si: {cvf_min, cvf_max, antiguedad_min, antiguedad_max}, tipo | cuota_fija}. cvf_min y antiguedad_min inclusivos; cvf_max y antiguedad_max exclusivos; antigüedad en años completos. Gana la primera regla que cumple todas sus condiciones; si ninguna, tipo_general.",
+  "reglas_formato": "Cada regla: {si: {cvf_min, cvf_mayor_que, cvf_max, cvf_menor_igual, antiguedad_min, antiguedad_max, combustible_en}, tipo | cuota_fija}. cvf_min y antiguedad_min inclusivos; cvf_max y antiguedad_max exclusivos; cvf_mayor_que y cvf_menor_igual como indican; antigüedad en años completos. Gana la primera regla que cumple todas sus condiciones; si ninguna, tipo_general.",
   "ccaa": {
-    "AN": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de Andalucía", "candidatos": [{"tipo": 4.0, "origen": "guiafiscal.es"}, {"tipo": 8.0, "origen": "billeo.es"}]},
-    "AR": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de Aragón", "candidatos": [{"tipo": 4.0, "origen": "guiafiscal.es (única fuente)"}]},
-    "AS": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de Asturias", "candidatos": [{"tipo": 4.0, "origen": "guiafiscal.es"}, {"tipo": 8.0, "origen": "billeo.es"}]},
-    "IB": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de Illes Balears", "candidatos": [{"tipo": 4.0, "origen": "guiafiscal.es, con 8 % desde 15 CVF (única fuente)"}]},
-    "CN": {"tipo_general": 5.5, "reglas": [], "verificar": true, "fuente": "Normativa de Canarias (coinciden guiafiscal.es y billeo.es)"},
-    "CB": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de Cantabria", "candidatos": [{"tipo": 6.0, "origen": "guiafiscal.es (única fuente)"}]},
-    "CL": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de Castilla y León", "candidatos": [{"tipo": 5.0, "origen": "guiafiscal.es"}, {"tipo": 4.0, "origen": "billeo.es"}]},
-    "CM": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de Castilla-La Mancha", "candidatos": [{"tipo": 6.0, "origen": "guiafiscal.es"}, {"tipo": 9.0, "origen": "billeo.es"}]},
-    "CT": {"tipo_general": 5.0, "reglas": [], "verificar": true, "fuente": "Normativa de Cataluña (coinciden guiafiscal.es y billeo.es)"},
-    "VC": {"tipo_general": 6.0, "reglas": [], "verificar": true, "fuente": "Normativa de la Comunitat Valenciana (coinciden guiafiscal.es y billeo.es)"},
-    "EX": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de Extremadura", "candidatos": [{"tipo": 6.0, "origen": "guiafiscal.es (única fuente)"}]},
-    "GA": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de Galicia", "candidatos": [{"tipo": 4.0, "origen": "guiafiscal.es"}, {"tipo": 8.0, "origen": "billeo.es"}]},
-    "MD": {"tipo_general": 4.0, "reglas": [], "verificar": true, "fuente": "Normativa de la Comunidad de Madrid (coinciden guiafiscal.es y billeo.es)"},
-    "MC": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de la Región de Murcia", "candidatos": [{"tipo": 4.0, "origen": "guiafiscal.es (única fuente)"}]},
-    "NC": {"tipo_general": 4.0, "reglas": [], "verificar": true, "fuente": "Normativa foral de Navarra (coinciden guiafiscal.es y billeo.es)"},
-    "PV": {"tipo_general": 4.0, "reglas": [], "verificar": true, "fuente": "Normativa foral del País Vasco (coinciden guiafiscal.es y billeo.es)"},
-    "RI": {"tipo_general": null, "reglas": [], "verificar": true, "fuente": "Normativa de La Rioja", "candidatos": [{"tipo": 4.0, "origen": "guiafiscal.es"}, {"tipo": 7.0, "origen": "billeo.es"}]}
+    "AN": {
+      "tipo_general": 4.0,
+      "verificar": true,
+      "fuente": "Junta de Andalucía (ATRIAN), Ley 5/2021 de Tributos Cedidos: 4 % general, 8 % en turismos y todoterrenos de más de 15 CVF y 1 % en turismos con distintivo ambiental «0 emisiones»",
+      "url": "https://www.juntadeandalucia.es/organismos/atrian/areas/informacion-tributaria/impuestos/preguntas-frecuentes/impuestos-transmisiones-actos/aplicar-tp.html",
+      "nota": "Consultado mediante buscador sobre la web oficial; contrastar con la Ley 5/2021 y el informe «Tributación autonómica» de Hacienda. El tipo del 1 % se aplica aquí solo a eléctricos puros; un híbrido enchufable con etiqueta 0 podría tener derecho a él.",
+      "reglas": [
+        {
+          "si": {
+            "combustible_en": [
+              "electrico"
+            ]
+          },
+          "tipo": 1.0
+        },
+        {
+          "si": {
+            "cvf_mayor_que": 15
+          },
+          "tipo": 8.0
+        }
+      ]
+    },
+    "AR": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Aragón",
+      "candidatos": [
+        {
+          "tipo": 4.0,
+          "origen": "guiafiscal.es (única fuente)"
+        }
+      ]
+    },
+    "AS": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Asturias",
+      "candidatos": [
+        {
+          "tipo": 4.0,
+          "origen": "guiafiscal.es"
+        },
+        {
+          "tipo": 8.0,
+          "origen": "billeo.es"
+        }
+      ]
+    },
+    "IB": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Illes Balears",
+      "candidatos": [
+        {
+          "tipo": 4.0,
+          "origen": "guiafiscal.es, con 8 % desde 15 CVF (única fuente)"
+        }
+      ]
+    },
+    "CN": {
+      "tipo_general": 5.5,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Canarias (coinciden guiafiscal.es y billeo.es)"
+    },
+    "CB": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Cantabria",
+      "candidatos": [
+        {
+          "tipo": 6.0,
+          "origen": "guiafiscal.es (única fuente)"
+        }
+      ]
+    },
+    "CL": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Castilla y León",
+      "candidatos": [
+        {
+          "tipo": 5.0,
+          "origen": "guiafiscal.es"
+        },
+        {
+          "tipo": 4.0,
+          "origen": "billeo.es"
+        }
+      ]
+    },
+    "CM": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Castilla-La Mancha",
+      "candidatos": [
+        {
+          "tipo": 6.0,
+          "origen": "guiafiscal.es"
+        },
+        {
+          "tipo": 9.0,
+          "origen": "billeo.es"
+        }
+      ]
+    },
+    "CT": {
+      "tipo_general": 5.0,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Cataluña (coinciden guiafiscal.es y billeo.es)"
+    },
+    "VC": {
+      "tipo_general": 6.0,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de la Comunitat Valenciana (coinciden guiafiscal.es y billeo.es)"
+    },
+    "EX": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Extremadura",
+      "candidatos": [
+        {
+          "tipo": 6.0,
+          "origen": "guiafiscal.es (única fuente)"
+        }
+      ]
+    },
+    "GA": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de Galicia",
+      "candidatos": [
+        {
+          "tipo": 4.0,
+          "origen": "guiafiscal.es"
+        },
+        {
+          "tipo": 8.0,
+          "origen": "billeo.es"
+        }
+      ]
+    },
+    "MD": {
+      "tipo_general": 4.0,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de la Comunidad de Madrid (coinciden guiafiscal.es y billeo.es)"
+    },
+    "MC": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de la Región de Murcia",
+      "candidatos": [
+        {
+          "tipo": 4.0,
+          "origen": "guiafiscal.es (única fuente)"
+        }
+      ]
+    },
+    "NC": {
+      "tipo_general": 4.0,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa foral de Navarra (coinciden guiafiscal.es y billeo.es)"
+    },
+    "PV": {
+      "tipo_general": 4.0,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa foral del País Vasco (coinciden guiafiscal.es y billeo.es)"
+    },
+    "RI": {
+      "tipo_general": null,
+      "reglas": [],
+      "verificar": true,
+      "fuente": "Normativa de La Rioja",
+      "candidatos": [
+        {
+          "tipo": 4.0,
+          "origen": "guiafiscal.es"
+        },
+        {
+          "tipo": 7.0,
+          "origen": "billeo.es"
+        }
+      ]
+    }
   }
 }
