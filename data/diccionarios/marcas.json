@@ -1,0 +1,516 @@
+{
+ "_nota": "Marca del BOE -> nombre visible y alias. Editable a mano; scripts/boe/generar_diccionarios.py solo añade marcas nuevas.",
+ "marcas": {
+  "ABARTH": {
+   "nombre": "Abarth",
+   "alias": []
+  },
+  "AIWAYS": {
+   "nombre": "Aiways",
+   "alias": []
+  },
+  "ALFA ROMEO": {
+   "nombre": "Alfa Romeo",
+   "alias": [
+    "alfa romeo",
+    "alfa"
+   ]
+  },
+  "ALPINE": {
+   "nombre": "Alpine",
+   "alias": []
+  },
+  "ARO": {
+   "nombre": "Aro",
+   "alias": []
+  },
+  "ASTON MARTIN": {
+   "nombre": "Aston Martin",
+   "alias": [
+    "aston martin"
+   ]
+  },
+  "AUDI": {
+   "nombre": "Audi",
+   "alias": []
+  },
+  "BAIC": {
+   "nombre": "BAIC",
+   "alias": []
+  },
+  "BENTLEY": {
+   "nombre": "Bentley",
+   "alias": []
+  },
+  "BMW": {
+   "nombre": "BMW",
+   "alias": []
+  },
+  "BYD": {
+   "nombre": "BYD",
+   "alias": []
+  },
+  "CADILLAC": {
+   "nombre": "Cadillac",
+   "alias": []
+  },
+  "CENNTRO": {
+   "nombre": "Cenntro",
+   "alias": []
+  },
+  "CHEVROLET": {
+   "nombre": "Chevrolet",
+   "alias": [
+    "chevrolet"
+   ]
+  },
+  "CHRYSLER": {
+   "nombre": "Chrysler",
+   "alias": []
+  },
+  "CITROEN": {
+   "nombre": "Citroën",
+   "alias": [
+    "citroën",
+    "citroen"
+   ]
+  },
+  "CORVETTE": {
+   "nombre": "Corvette",
+   "alias": [
+    "corvette"
+   ]
+  },
+  "CUPRA": {
+   "nombre": "Cupra",
+   "alias": []
+  },
+  "DACIA": {
+   "nombre": "Dacia",
+   "alias": []
+  },
+  "DAEWOO": {
+   "nombre": "Daewoo",
+   "alias": []
+  },
+  "DAIHATSU": {
+   "nombre": "Daihatsu",
+   "alias": []
+  },
+  "DAIMLER": {
+   "nombre": "Daimler",
+   "alias": []
+  },
+  "DFSK MOTORS": {
+   "nombre": "DFSK",
+   "alias": [
+    "dfsk",
+    "dfsk motors"
+   ]
+  },
+  "DODGE": {
+   "nombre": "Dodge",
+   "alias": []
+  },
+  "DONGFENG": {
+   "nombre": "Dongfeng",
+   "alias": []
+  },
+  "DR MOTOR": {
+   "nombre": "DR",
+   "alias": [
+    "dr motor",
+    "dr automobiles",
+    "dr"
+   ]
+  },
+  "DS": {
+   "nombre": "DS Automobiles",
+   "alias": [
+    "ds automobiles",
+    "ds"
+   ]
+  },
+  "EBRO": {
+   "nombre": "Ebro",
+   "alias": []
+  },
+  "EMC": {
+   "nombre": "EMC",
+   "alias": []
+  },
+  "EVO": {
+   "nombre": "EVO",
+   "alias": []
+  },
+  "FERRARI": {
+   "nombre": "Ferrari",
+   "alias": []
+  },
+  "FIAT": {
+   "nombre": "Fiat",
+   "alias": []
+  },
+  "FISKER": {
+   "nombre": "Fisker",
+   "alias": []
+  },
+  "FORD": {
+   "nombre": "Ford",
+   "alias": []
+  },
+  "FOTON": {
+   "nombre": "Foton",
+   "alias": []
+  },
+  "FSM": {
+   "nombre": "FSM",
+   "alias": []
+  },
+  "GALLOPER": {
+   "nombre": "Galloper",
+   "alias": []
+  },
+  "GMC": {
+   "nombre": "GMC",
+   "alias": []
+  },
+  "GREEN TOUR": {
+   "nombre": "Green Tour",
+   "alias": []
+  },
+  "HONDA": {
+   "nombre": "Honda",
+   "alias": []
+  },
+  "HUMMER": {
+   "nombre": "Hummer",
+   "alias": []
+  },
+  "HURTAN": {
+   "nombre": "Hurtan",
+   "alias": []
+  },
+  "HYUNDAI": {
+   "nombre": "Hyundai",
+   "alias": []
+  },
+  "INEOS": {
+   "nombre": "Ineos",
+   "alias": []
+  },
+  "INFINITI": {
+   "nombre": "Infiniti",
+   "alias": []
+  },
+  "ISUZU": {
+   "nombre": "Isuzu",
+   "alias": []
+  },
+  "IVECO": {
+   "nombre": "Iveco",
+   "alias": []
+  },
+  "JAC": {
+   "nombre": "JAC",
+   "alias": []
+  },
+  "JAECOO": {
+   "nombre": "Jaecoo",
+   "alias": []
+  },
+  "JAGUAR": {
+   "nombre": "Jaguar",
+   "alias": []
+  },
+  "JEEP": {
+   "nombre": "Jeep",
+   "alias": []
+  },
+  "KGM": {
+   "nombre": "KGM",
+   "alias": [
+    "kgm",
+    "kg mobility"
+   ]
+  },
+  "KIA": {
+   "nombre": "Kia",
+   "alias": []
+  },
+  "KTM": {
+   "nombre": "KTM",
+   "alias": []
+  },
+  "LADA": {
+   "nombre": "Lada",
+   "alias": []
+  },
+  "LAMBORGHINI": {
+   "nombre": "Lamborghini",
+   "alias": []
+  },
+  "LANCIA": {
+   "nombre": "Lancia",
+   "alias": []
+  },
+  "LAND ROVER": {
+   "nombre": "Land Rover",
+   "alias": [
+    "land rover",
+    "land-rover",
+    "landrover"
+   ]
+  },
+  "LEAPMOTOR": {
+   "nombre": "Leapmotor",
+   "alias": []
+  },
+  "LEVC": {
+   "nombre": "LEVC",
+   "alias": []
+  },
+  "LEXUS": {
+   "nombre": "Lexus",
+   "alias": []
+  },
+  "LIVAN": {
+   "nombre": "Livan",
+   "alias": []
+  },
+  "LOTUS": {
+   "nombre": "Lotus",
+   "alias": []
+  },
+  "LUCID": {
+   "nombre": "Lucid",
+   "alias": []
+  },
+  "LYNK & CO": {
+   "nombre": "Lynk & Co",
+   "alias": [
+    "lynk & co",
+    "lynk&co",
+    "lynk co"
+   ]
+  },
+  "MAHINDRA": {
+   "nombre": "Mahindra",
+   "alias": []
+  },
+  "MASERATI": {
+   "nombre": "Maserati",
+   "alias": []
+  },
+  "MAXUS": {
+   "nombre": "Maxus",
+   "alias": []
+  },
+  "MAYBACH": {
+   "nombre": "Maybach",
+   "alias": []
+  },
+  "MAZDA": {
+   "nombre": "Mazda",
+   "alias": []
+  },
+  "MCLAREN": {
+   "nombre": "Mclaren",
+   "alias": []
+  },
+  "MERCEDES": {
+   "nombre": "Mercedes-Benz",
+   "alias": [
+    "mercedes-benz",
+    "mercedes benz",
+    "mercedes",
+    "mercedes-amg",
+    "amg",
+    "mb"
+   ]
+  },
+  "MG": {
+   "nombre": "MG",
+   "alias": [
+    "mg",
+    "mg roewe",
+    "mg motor"
+   ]
+  },
+  "MINI": {
+   "nombre": "MINI",
+   "alias": []
+  },
+  "MITSUBISHI": {
+   "nombre": "Mitsubishi",
+   "alias": []
+  },
+  "MK SPORTSCAR": {
+   "nombre": "MK Sportscar",
+   "alias": []
+  },
+  "MOBILIZE": {
+   "nombre": "Mobilize",
+   "alias": []
+  },
+  "MOKE": {
+   "nombre": "Moke",
+   "alias": []
+  },
+  "MORGAN": {
+   "nombre": "Morgan",
+   "alias": []
+  },
+  "NISSAN": {
+   "nombre": "Nissan",
+   "alias": []
+  },
+  "OMODA": {
+   "nombre": "Omoda",
+   "alias": []
+  },
+  "OPEL": {
+   "nombre": "Opel",
+   "alias": []
+  },
+  "PEUGEOT": {
+   "nombre": "Peugeot",
+   "alias": []
+  },
+  "PGO": {
+   "nombre": "PGO",
+   "alias": []
+  },
+  "PIAGGIO": {
+   "nombre": "Piaggio",
+   "alias": []
+  },
+  "POLESTAR": {
+   "nombre": "Polestar",
+   "alias": []
+  },
+  "PONTIAC": {
+   "nombre": "Pontiac",
+   "alias": []
+  },
+  "PORSCHE": {
+   "nombre": "Porsche",
+   "alias": []
+  },
+  "QOROS": {
+   "nombre": "Qoros",
+   "alias": []
+  },
+  "RENAULT": {
+   "nombre": "Renault",
+   "alias": []
+  },
+  "ROLLS-ROYCE": {
+   "nombre": "Rolls-Royce",
+   "alias": [
+    "rolls-royce",
+    "rolls royce"
+   ]
+  },
+  "ROVER": {
+   "nombre": "Rover",
+   "alias": []
+  },
+  "SAAB": {
+   "nombre": "Saab",
+   "alias": []
+  },
+  "SANTANA": {
+   "nombre": "Santana",
+   "alias": []
+  },
+  "SEAT": {
+   "nombre": "SEAT",
+   "alias": []
+  },
+  "SERES": {
+   "nombre": "Seres",
+   "alias": []
+  },
+  "SKODA": {
+   "nombre": "Škoda",
+   "alias": [
+    "škoda",
+    "skoda"
+   ]
+  },
+  "SKYWELL": {
+   "nombre": "Skywell",
+   "alias": []
+  },
+  "SMART": {
+   "nombre": "Smart",
+   "alias": [
+    "smart"
+   ]
+  },
+  "SSANYONG": {
+   "nombre": "SsangYong",
+   "alias": [
+    "ssangyong",
+    "ssang yong"
+   ]
+  },
+  "SUBARU": {
+   "nombre": "Subaru",
+   "alias": []
+  },
+  "SUZUKI": {
+   "nombre": "Suzuki",
+   "alias": []
+  },
+  "SWM": {
+   "nombre": "SWM",
+   "alias": []
+  },
+  "TATA": {
+   "nombre": "Tata",
+   "alias": []
+  },
+  "TESLA": {
+   "nombre": "Tesla",
+   "alias": []
+  },
+  "THINK": {
+   "nombre": "Think",
+   "alias": []
+  },
+  "TOYOTA": {
+   "nombre": "Toyota",
+   "alias": []
+  },
+  "VOLKSWAGEN": {
+   "nombre": "Volkswagen",
+   "alias": [
+    "vw",
+    "volkswagen",
+    "volkswagen nutzfahrzeuge",
+    "vw nutzfahrzeuge"
+   ]
+  },
+  "VOLVO": {
+   "nombre": "Volvo",
+   "alias": []
+  },
+  "XPENG": {
+   "nombre": "Xpeng",
+   "alias": [
+    "xpeng",
+    "xiaopeng"
+   ]
+  },
+  "YUDO": {
+   "nombre": "Yudo",
+   "alias": []
+  },
+  "ZHIDOU": {
+   "nombre": "Zhidou",
+   "alias": []
+  }
+ }
+}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CalculadoraImportacion\Web;
 
+use CalculadoraImportacion\Boe\Servicio as ServicioBoe;
 use CalculadoraImportacion\Calculo\Calculadora;
 use CalculadoraImportacion\Calculo\EntradaInvalida;
 use CalculadoraImportacion\Datos\Tablas;
@@ -29,6 +30,8 @@ final class App
 
     private ?array $tablas = null;
     private ?Almacen $almacen = null;
+    private ?ServicioBoe $boe = null;
+    private bool $boeCargado = false;
     /** @var \Closure(): string */
     private \Closure $hoy;
 
@@ -76,6 +79,7 @@ final class App
             ['GET', '#^/c/' . $ids . '$#', 'resultado'],
             ['GET', '#^/c/' . $ids . '/editar$#', 'editar'],
             ['POST', '#^/c/' . $ids . '/costes$#', 'ajustar'],
+            ['POST', '#^/c/' . $ids . '/boe$#', 'cambiarFilaBoe'],
             ['GET', '#^/comparar$#', 'comparar'],
             ['GET', '#^/historial$#', 'historial'],
             ['GET', '#^/api/municipios$#', 'apiMunicipios'],
@@ -179,7 +183,7 @@ final class App
             $r->cabeceras['Content-Type'] = 'text/html; charset=utf-8';
             return $r->conCabecera('Cache-Control', 'no-store');
         }
-        return $this->guardarYRedirigir($p, $f['entrada'], $tablas);
+        return $this->guardarYRedirigir($p, $this->conFilaBoe($f['entrada'], $tablas), $tablas);
     }
 
     private function resultado(Peticion $p, string $id): Respuesta
@@ -221,6 +225,26 @@ final class App
             return $this->paginaResultado($p, $calculo, $a['errores'], $a['valores'], 422);
         }
         return $this->guardarYRedirigir($p, $a['entrada'], $this->tablas());
+    }
+
+    /** El usuario elige otra de las filas parecidas del BOE: se recalcula con ella y se guarda como cálculo nuevo. */
+    private function cambiarFilaBoe(Peticion $p, string $id): Respuesta
+    {
+        $almacen = $this->almacen();
+        if (!Csrf::validar($p, $almacen->secreto())) {
+            return $this->errorCsrf();
+        }
+        $calculo = $almacen->leerCalculo($id);
+        if ($calculo === null) {
+            return $this->error(404, 'Cálculo no encontrado', 'Ese cálculo no existe o ha caducado.');
+        }
+        $tablas = $this->tablas();
+        $boe = $this->boe($tablas);
+        $fila = $boe !== null ? $boe->fila((int) Peticion::texto($p->post, 'fila', 10)) : null;
+        if ($fila === null || !$boe->esDeLaMarca($fila, $calculo['entrada'])) {
+            return $this->error(422, 'Fila no válida', 'Esa fila del BOE no corresponde a la marca de este coche. Vuelve al resultado y elige una de las filas propuestas.');
+        }
+        return $this->guardarYRedirigir($p, $boe->aplicar($calculo['entrada'], $fila, 'usuario'), $tablas);
     }
 
     private function comparar(Peticion $p): Respuesta
@@ -302,7 +326,7 @@ final class App
     {
         return Vista::pagina('datos', [
             'csrf' => $csrf, 'v' => $valores, 'errores' => $errores, 'candidatos' => $candidatos, 'editando' => $editando,
-            'combustibles' => self::COMBUSTIBLES,
+            'combustibles' => self::COMBUSTIBLES, 'marcas' => $this->boe($tablas)?->marcas()->nombresVisibles() ?? [],
         ], [
             'titulo' => ($errores ? 'Revisa los datos' : 'Datos del coche') . ' – Calculadora de importación',
             'ruta' => '/datos', 'robots' => 'noindex', 'activa' => 'inicio',
@@ -331,6 +355,7 @@ final class App
             'errores' => $erroresAjuste, 'ajuste' => $valoresAjuste,
             'costesDefecto' => $tablas['costes_fijos']['partidas'], 'transporteDefecto' => $tablas['transporte'],
             'resumenJson' => self::resumenParaHistorial($calculo, $titulo, $url),
+            'panelBoe' => $this->panelBoe($entrada, $res, $tablas),
         ], [
             'titulo' => 'Coste de importar ' . ($titulo !== '' ? $titulo : 'tu coche') . ' – Calculadora de importación',
             'ruta' => '/c/' . $calculo['id'], 'robots' => 'noindex', 'activa' => 'inicio', 'clase' => 'pagina-resultado',
@@ -387,11 +412,95 @@ final class App
             return $this->error(422, 'Datos no válidos', implode(' ', $e->errores));
         }
         $resultado['meta'] = ['calculado' => ($this->hoy)(), 'anio_tablas' => $tablas['anio']];
+        array_push($resultado['avisos'], ...$this->avisosBoe($entrada, $tablas));
         $id = $almacen->guardarCalculo($entrada, $resultado);
         if (random_int(1, 100) === 1) {
             $almacen->purgar(Config::DIAS_CONSERVACION);
         }
         return Respuesta::redirigir('/c/' . $id);
+    }
+
+    // ------------------------------------------------------------------ fila del BOE
+
+    /** La base del BOE del año de las tablas, o null si no está (entonces solo vale el precio medio escrito a mano). */
+    private function boe(array $tablas): ?ServicioBoe
+    {
+        if (!$this->boeCargado) {
+            $this->boe = ServicioBoe::crear(Config::dirData(), (int) $tablas['anio']);
+            $this->boeCargado = true;
+        }
+        return $this->boe;
+    }
+
+    /** Si el usuario no ha escrito el precio medio, busca la fila del BOE que más se parece. */
+    private function conFilaBoe(array $entrada, array $tablas): array
+    {
+        $boe = $this->boe($tablas);
+        return $boe === null ? $entrada : $boe->elegirAutomaticamente($entrada);
+    }
+
+    /** Avisos sobre cómo se ha obtenido la fila del BOE (se guardan con el resultado). */
+    private function avisosBoe(array $entrada, array $tablas): array
+    {
+        $b = $entrada['boe'] ?? null;
+        if (($b['origen'] ?? null) === 'auto') {
+            $pct = (int) round(((float) $b['puntuacion']) * 100);
+            $alta = ($b['confianza'] ?? '') === 'alta';
+            return [\CalculadoraImportacion\Calculo\Partida::aviso(
+                'boe_automatica',
+                $alta
+                    ? "Hemos buscado tu modelo en la Orden del BOE y la fila «{$b['modelo_tipo']}» encaja muy bien ($pct % de coincidencia). Compruébala en el apartado «Fila del BOE»: de ella salen el valor venal y, con él, el impuesto de matriculación y el ITP."
+                    : "Hemos elegido la fila «{$b['modelo_tipo']}» de la Orden del BOE, pero la coincidencia no es segura ($pct %). El valor venal, el impuesto de matriculación y el ITP dependen de ella: revisa el apartado «Fila del BOE» y elige la correcta.",
+                $alta ? 'info' : 'atencion'
+            )];
+        }
+        if ($b === null && $this->boe($tablas) !== null) {
+            $sinDatos = trim((string) ($entrada['marca'] ?? '')) === '' || trim((string) ($entrada['modelo'] ?? '')) === '';
+            return [\CalculadoraImportacion\Calculo\Partida::aviso(
+                'boe_sin_fila',
+                $sinDatos
+                    ? 'No has indicado marca y modelo, así que no hemos podido buscar el coche en la Orden del BOE. Edita los datos y añádelos, o escribe el precio medio del BOE a mano.'
+                    : 'No hemos encontrado tu coche en la Orden del BOE de ' . $tablas['anio'] . ' con la seguridad suficiente. Edita los datos (marca, modelo y versión tal como los escribe el BOE) o escribe a mano el precio medio de tu modelo.',
+                'atencion'
+            )];
+        }
+        return [];
+    }
+
+    /**
+     * Lo que enseña el apartado «Fila del BOE» del resultado: la fila usada y las más parecidas, cada una con el total
+     * que saldría si se eligiera esa.
+     *
+     * @return array{disponible: bool, actual: ?array, filas: list<array<string, mixed>>, anio: int}
+     */
+    private function panelBoe(array $entrada, array $res, array $tablas): array
+    {
+        $boe = $this->boe($tablas);
+        if ($boe === null) {
+            return ['disponible' => false, 'actual' => null, 'filas' => [], 'anio' => (int) $tablas['anio']];
+        }
+        $actual = $entrada['boe'] ?? null;
+        $candidatas = $boe->candidatas($entrada)['candidatas'];
+        // La fila en uso se enseña siempre, aunque ya no esté entre las tres más parecidas (p. ej. si la eligió el usuario)
+        $idActual = $actual['id'] ?? null;
+        if ($idActual !== null && !in_array($idActual, array_map(static fn(array $c): int => $c['fila']['id'], $candidatas), true)) {
+            $f = $boe->fila((int) $idActual);
+            $e = $f !== null ? $boe->evaluar($entrada, $f) : null;
+            if ($e !== null) {
+                array_unshift($candidatas, $e);
+            }
+        }
+        $filas = [];
+        foreach ($candidatas as $c) {
+            $total = null;
+            try {
+                $r = Calculadora::calcular($boe->aplicar($entrada, $c['fila'], 'usuario'), $tablas);
+                $total = $r['completo'] ? (float) $r['total'] : null;
+            } catch (EntradaInvalida) {
+            }
+            $filas[] = $c + ['total' => $total, 'en_uso' => $actual !== null && ($actual['id'] ?? null) === $c['fila']['id']];
+        }
+        return ['disponible' => true, 'actual' => $actual, 'filas' => $filas, 'anio' => $boe->anio()];
     }
 
     private function errorCsrf(): Respuesta

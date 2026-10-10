@@ -54,6 +54,7 @@ function campoTexto(string $nombre, string $etiqueta, array $valores, array $err
     }
     $html .= '<input type="text" id="' . e($id) . '" name="' . e($nombre) . '" value="' . e($valor) . '"'
         . ' inputmode="' . e($op['modo'] ?? 'text') . '" autocomplete="' . e($op['auto'] ?? 'off') . '" spellcheck="false"'
+        . (!empty($op['lista']) ? ' list="' . e($op['lista']) . '"' : '')
         . ($describe ? ' aria-describedby="' . e(implode(' ', $describe)) . '"' : '')
         . ($error !== null ? ' aria-invalid="true"' : '')
         . (!empty($op['obligatorio']) ? ' aria-required="true"' : '') . '>';

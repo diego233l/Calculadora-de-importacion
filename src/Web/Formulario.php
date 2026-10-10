@@ -120,6 +120,7 @@ final class Formulario
                 $err['boe_precio'] = 'El precio medio del BOE debe ser un importe en euros (por ejemplo 38.000).';
             } else {
                 $entrada['fila_boe'] = ['precio' => $boe];
+                $entrada['boe'] = ['origen' => 'manual', 'valor' => $boe];
             }
         }
 
@@ -219,7 +220,8 @@ final class Formulario
             'vendedor' => (string) ($entrada['vendedor'] ?? ''),
             'iva_deducible' => !empty($entrada['iva_deducible']) ? '1' : '',
             'cp_vendedor' => (string) ($entrada['cp_vendedor'] ?? ''),
-            'boe_precio' => $num($entrada['fila_boe']['precio'] ?? null),
+            // Solo se rellena si el precio lo escribió el usuario; una fila elegida por nosotros se vuelve a buscar al recalcular
+            'boe_precio' => ($entrada['boe']['origen'] ?? 'manual') === 'manual' ? $num($entrada['fila_boe']['precio'] ?? null) : '',
         ];
     }
 

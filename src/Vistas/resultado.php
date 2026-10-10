@@ -21,6 +21,7 @@ use function CalculadoraImportacion\Web\resumenErrores;
 /** @var array $costesDefecto */
 /** @var array $transporteDefecto */
 /** @var string $resumenJson */
+/** @var array $panelBoe */
 
 $der = $res['derivados'];
 $g = $resumen['grupos'];
@@ -151,6 +152,8 @@ usort($alertas, static fn(array $a, array $b): int => [$a['nivel'] === 'atencion
       <?php endforeach; ?>
     </ul>
   <?php endif; ?>
+
+  <?= \CalculadoraImportacion\Web\Vista::renderizar('boe_panel', ['id' => $id, 'csrf' => $csrf, 'panel' => $panelBoe, 'totalActual' => $total]) ?>
 
   <div class="acciones botones">
     <a class="boton" href="/c/<?= e($id) ?>/editar">Editar los datos</a>

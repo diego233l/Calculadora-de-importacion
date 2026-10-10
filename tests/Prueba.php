@@ -54,7 +54,7 @@ final class Afirmar
     public static function contiene(string $aguja, string $pajar, string $mensaje = ''): void
     {
         if (!str_contains($pajar, $aguja)) {
-            throw new \AssertionError(($mensaje !== '' ? $mensaje . ': ' : '') . "no se encuentra «$aguja» en «$pajar»");
+            throw new \AssertionError(($mensaje !== '' ? $mensaje . ': ' : '') . "no se encuentra «{$aguja}» en «{$pajar}»");
         }
     }
 

@@ -11,6 +11,7 @@ use function CalculadoraImportacion\Web\resumenErrores;
 /** @var array $errores */
 /** @var array $candidatos */
 /** @var array $combustibles */
+/** @var list<string> $marcas nombres de marca para la lista de sugerencias */
 /** @var ?string $editando */
 $etiquetas = [
     'enlace' => 'Enlace del anuncio', 'municipio' => 'Municipio', 'matriculacion' => 'Primera matriculación', 'km' => 'Kilómetros',
@@ -42,10 +43,14 @@ $combustibleActual = $v['combustible'] ?? '';
       <legend>El coche</legend>
       <div class="formulario">
         <div class="rejilla rejilla--3">
-          <?= campoTexto('marca', 'Marca', $v, $errores, ['auto' => 'off']) ?>
+          <?= campoTexto('marca', 'Marca', $v, $errores, ['auto' => 'off', 'lista' => 'lista-marcas']) ?>
           <?= campoTexto('modelo', 'Modelo', $v, $errores) ?>
           <?= campoTexto('version', 'Versión', $v, $errores) ?>
         </div>
+        <?php if (!empty($marcas)): ?>
+          <datalist id="lista-marcas"><?php foreach ($marcas as $m): ?><option value="<?= e($m) ?>"><?php endforeach; ?></datalist>
+        <?php endif; ?>
+        <p class="pista">Escribe marca, modelo y versión como en el anuncio («BMW», «320d», «Touring Sport Line»): con ellos buscamos tu coche en la Orden del BOE para saber su valor venal.</p>
         <div class="rejilla rejilla--2">
           <?= campoTexto('matriculacion', 'Primera matriculación', $v, $errores, ['obligatorio' => true, 'modo' => 'numeric', 'pista' => 'Mes y año, como «03/2019». En el anuncio: «Erstzulassung».']) ?>
           <?= campoTexto('km', 'Kilómetros', $v, $errores, ['obligatorio' => true, 'modo' => 'numeric', 'pista' => 'En el anuncio: «Kilometerstand».']) ?>
@@ -97,11 +102,11 @@ $combustibleActual = $v['combustible'] ?? '';
     </fieldset>
 
     <fieldset>
-      <legend>Valoración del BOE</legend>
+      <legend>Valoración del BOE <span class="opcional">(opcional)</span></legend>
       <div class="formulario">
         <?= campoTexto('boe_precio', 'Precio medio del modelo en el BOE (€)', $v, $errores, [
             'modo' => 'decimal',
-            'pista' => 'Es el precio medio que fija la Orden HAC/1501/2025 (anexo I) para tu modelo. Hacienda lo usa de base para el impuesto de matriculación y el ITP. Sin él no podemos calcular esos dos impuestos.',
+            'pista' => 'Déjalo vacío y buscaremos tu coche en la Orden HAC/1501/2025 (anexo I) por marca, modelo, año, cilindrada, potencia y combustible; en el resultado podrás cambiar de fila. Escríbelo solo si ya conoces el precio medio exacto de tu versión: entonces usaremos ese.',
         ]) ?>
       </div>
     </fieldset>

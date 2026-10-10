@@ -349,3 +349,72 @@ prueba('W14. La redirección interna solo acepta rutas propias', function (): vo
     Afirmar::igual('calculadora.example:8082', Peticion::hostSeguro('Calculadora.Example:8082'));
     Afirmar::igual('', Peticion::hostSeguro("a.com\r\nX-Evil: 1"));
 });
+
+prueba('W15. Sin precio del BOE se busca la fila sola, se enseña con sus alternativas y se avisa', function (): void {
+    [$app, $id, $cookies, , $r] = calcularCoche(['boe_precio' => '', 'marca' => 'Volkswagen', 'modelo' => 'Golf VII', 'version' => '2.0 TDI Highline', 'matriculacion' => '03/2019']);
+    Afirmar::igual(303, $r->estado, 'se calcula sin escribir el precio del BOE');
+    $p = $app->manejar(peticionGet('/c/' . $id));
+    Afirmar::igual(200, $p->estado);
+    Afirmar::contiene('Fila del BOE de la que sale el valor venal', $p->cuerpo);
+    Afirmar::contiene('GOLF VII 2.0 TDI', $p->cuerpo);
+    Afirmar::contiene('Precio medio de la Orden', $p->cuerpo);
+    Afirmar::contiene('Elegida por nosotros', $p->cuerpo);
+    Afirmar::contiene('name="fila"', $p->cuerpo);
+    Afirmar::contiene('/c/' . $id . '/boe', $p->cuerpo);
+    Afirmar::contiene('Total con esta fila', $p->cuerpo);
+    Afirmar::falso(str_contains($p->cuerpo, 'No calculable (falta el precio medio del BOE)'), 'ya hay valor venal');
+    sinInyeccion($p->cuerpo, 'resultado con fila del BOE');
+    Afirmar::igual(0, preg_match('/\sstyle="/', $p->cuerpo));
+});
+
+prueba('W16. Elegir otra fila del BOE crea un cálculo nuevo con el precio de esa fila; una fila de otra marca se rechaza', function (): void {
+    [$app, $id, $cookies, $token] = calcularCoche(['boe_precio' => '', 'marca' => 'Volkswagen', 'modelo' => 'Golf VII', 'version' => '2.0 TDI', 'matriculacion' => '03/2019']);
+    $original = $app->manejar(peticionGet('/c/' . $id))->cuerpo;
+    preg_match_all('/name="fila" id="boe-(\d+)" value="\d+"( checked)?/', $original, $m, PREG_SET_ORDER);
+    Afirmar::verdadero(count($m) >= 2, 'al menos dos filas propuestas');
+    $enUso = null;
+    $otra = null;
+    foreach ($m as $f) {
+        isset($f[2]) ? $enUso = (int) $f[1] : $otra ??= (int) $f[1];
+    }
+    Afirmar::verdadero($enUso !== null && $otra !== null && $enUso !== $otra);
+    $r = $app->manejar(peticionPost('/c/' . $id . '/boe', ['csrf' => $token, 'fila' => (string) $otra], $cookies));
+    Afirmar::igual(303, $r->estado);
+    preg_match('#^/c/([a-f0-9]{12})$#', $r->cabeceras['Location'], $n);
+    Afirmar::verdadero($n[1] !== $id, 'cálculo nuevo; el original no cambia');
+    $nuevo = $app->manejar(peticionGet('/c/' . $n[1]))->cuerpo;
+    Afirmar::contiene('Elegida por ti', $nuevo);
+    Afirmar::verdadero(str_contains($nuevo, 'id="boe-' . $otra . '" value="' . $otra . '" checked'), 'la fila elegida queda marcada');
+    Afirmar::contiene('Elegida por nosotros', $app->manejar(peticionGet('/c/' . $id))->cuerpo);
+
+    // Fila de otra marca (la primera de ABARTH es la 1) o inexistente: 422 y no se guarda nada
+    foreach (['1', '99999999', 'abc', '', '-3'] as $mala) {
+        $x = $app->manejar(peticionPost('/c/' . $id . '/boe', ['csrf' => $token, 'fila' => $mala], $cookies));
+        Afirmar::igual(422, $x->estado, "fila «{$mala}»");
+    }
+    // Sin token de seguridad
+    Afirmar::igual(403, $app->manejar(peticionPost('/c/' . $id . '/boe', ['fila' => (string) $otra], $cookies))->estado);
+    Afirmar::igual(404, $app->manejar(peticionPost('/c/aaaaaaaaaaaa/boe', ['csrf' => $token, 'fila' => (string) $otra], $cookies))->estado);
+});
+
+prueba('W17. Una marca que no está en la Orden o sin modelo avisa y deja el valor venal como no calculable', function (): void {
+    [$app, $id, , , $r] = calcularCoche(['boe_precio' => '', 'marca' => 'Ora', 'modelo' => 'Funky Cat', 'version' => '', 'combustible' => 'electrico', 'cc' => '', 'cilindros' => '', 'kw' => '126', 'cv' => '']);
+    Afirmar::igual(303, $r->estado);
+    $p = $app->manejar(peticionGet('/c/' . $id))->cuerpo;
+    Afirmar::contiene('No hemos encontrado tu coche en la Orden del BOE', $p);
+    Afirmar::contiene('/c/' . $id . '/editar', $p);
+    [$app2, $id2] = calcularCoche(['boe_precio' => '', 'marca' => '', 'modelo' => '']);
+    Afirmar::contiene('No has indicado marca y modelo', $app2->manejar(peticionGet('/c/' . $id2))->cuerpo);
+});
+
+prueba('W18. El precio del BOE escrito a mano manda sobre la búsqueda y se conserva al editar', function (): void {
+    [$app, $id] = calcularCoche(['boe_precio' => '30.000']);
+    $p = $app->manejar(peticionGet('/c/' . $id))->cuerpo;
+    Afirmar::contiene('Precio escrito por ti', $p);
+    Afirmar::contiene('30.000', $p);
+    $editar = $app->manejar(peticionGet('/c/' . $id . '/editar'))->cuerpo;
+    Afirmar::contiene('name="boe_precio" value="30000"', $editar);
+    // Una fila elegida por el sistema NO se copia al formulario de edición (se vuelve a buscar al recalcular)
+    [$app2, $id2] = calcularCoche(['boe_precio' => '', 'marca' => 'Volkswagen', 'modelo' => 'Golf VII', 'version' => '2.0 TDI', 'matriculacion' => '03/2019']);
+    Afirmar::contiene('name="boe_precio" value=""', $app2->manejar(peticionGet('/c/' . $id2 . '/editar'))->cuerpo);
+});
