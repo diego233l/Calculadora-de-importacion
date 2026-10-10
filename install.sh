@@ -7,6 +7,7 @@
 #   bash install.sh --solo-comprobar # solo mira cómo está la máquina; no cambia nada
 #   bash install.sh --si             # no pregunta (para repetir la instalación o automatizarla)
 #   bash install.sh --instalar-php   # si falta PHP-FPM o alguna extensión, permite instalarlos con apt SIN preguntar (solo paquetes nuevos)
+#   bash install.sh --titular        # cambia los datos del titular (aviso legal) sin reinstalar nada
 #   bash install.sh --desinstalar    # quita el sitio de nginx y el pool de PHP-FPM (y deja el código y los datos)
 #   bash install.sh --desinstalar --borrar-todo   # además borra /opt/apps/calculadora-importacion y /var/lib/calculadora-importacion
 #   PUERTO=8083 bash install.sh      # otro puerto distinto de 8082
@@ -51,9 +52,10 @@ for arg in "$@"; do
         --desinstalar)    MODO="desinstalar" ;;
         --borrar-todo)    BORRAR_TODO=1 ;;
         --instalar-php)   INSTALAR_PHP=1 ;;
+        --titular)        MODO="titular" ;;
         --si|--yes|-y)    PREGUNTAR=0 ;;
         --puerto=*)       PUERTO="${arg#--puerto=}" ;;
-        -h|--ayuda|--help) sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--ayuda|--help) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "Opción desconocida: $arg (usa --ayuda)" >&2; exit 2 ;;
     esac
 done
@@ -177,13 +179,21 @@ snapshot_webs() {
         { dd = depth; o = gsub(/\{/, "{", raw); c = gsub(/\}/, "}", raw)
           if (dd == 1) {
             if (raw ~ /^[ \t]*listen[ \t]/) { t = raw; sub(/^[ \t]*listen[ \t]+/, "", t); split(t, a, /[ \t;]+/); addr = a[1]; p = addr; sub(/.*:/, "", p)
-                if (p !~ /^[0-9]+$/) p = "80"; ports = ports " " p; if (t ~ /ssl|http2/) ssl = ssl " " p }
+                if (addr !~ /^unix:/) { if (p !~ /^[0-9]+$/) p = "80"; ports = ports " " p; if (t ~ /ssl|http2/) ssl = ssl " " p } }
             if (raw ~ /^[ \t]*server_name[ \t]/) { t = raw; sub(/^[ \t]*server_name[ \t]+/, "", t); sub(/;.*/, "", t); names = names " " t }
           }
           depth += o - c
           if (depth <= 0) { print names "|" ports "|" ssl; ins = 0 } }' || true)"
+    local pares_puerto="" q
     while IFS='|' read -r nombres puertos ssl; do
-        [[ -n "${nombres// /}" ]] || continue
+        [[ -n "${puertos// /}" ]] || continue
+        # Cada puerto en el que escucha algún sitio se comprueba tal cual (así también cuentan los sitios sin nombre o con «server_name _»)
+        for q in $puertos; do
+            esquema="http"
+            for n in $ssl; do [[ "$n" == "$q" ]] && esquema="https"; done
+            [[ "$q" != "$PUERTO" ]] && pares_puerto+="${esquema}:${q}"$'\n'
+        done
+        # Y, además, cada sitio por su nombre (el primer puerto), para ver si responde el sitio correcto
         # shellcheck disable=SC2086
         p="$(printf '%s\n' $puertos | sort -un | head -1)"
         [[ -n "$p" && "$p" != "$PUERTO" ]] || continue
@@ -196,6 +206,11 @@ snapshot_webs() {
             printf '%s://%s:%s/ %s\n' "$esquema" "$n" "$p" "${codigo:-000}" >> "$salida"
         done
     done <<< "$lineas"
+    while IFS=: read -r esquema q; do
+        [[ -n "$q" ]] || continue
+        codigo="$(curl -sk -o /dev/null -m 8 -w '%{http_code}' "${esquema}://127.0.0.1:${q}/" 2>/dev/null || true)"
+        printf '%s://127.0.0.1:%s/ %s\n' "$esquema" "$q" "${codigo:-000}" >> "$salida"
+    done < <(printf '%s' "$pares_puerto" | sort -u)
     sort -u -o "$salida" "$salida"
     # Nuestra propia web, si ya estaba, no cuenta como «otra web»
     grep -v -F ":${PUERTO}/" "$salida" > "$salida.tmp" || true
@@ -466,27 +481,43 @@ paso_nginx() {
     ok "nginx recargado (reload, sin reiniciar)"
 }
 
+valor_de_sitio() {                # lee un valor del sitio.json que escribió este mismo script (una clave por línea); vacío si no existe
+    [[ -f "$DIR_VAR/sitio.json" ]] || return 0
+    sed -n "s/^ *\"$1\": *\"\(.*\)\",\{0,1\}\$/\1/p" "$DIR_VAR/sitio.json" | head -1 | sed -e 's/\\"/"/g' -e 's/\\\\/\\/g' || true
+}
+
 paso_titular() {
-    local f="$DIR_VAR/sitio.json" t="${TITULAR:-}" n="${NIF:-}" d="${DOMICILIO:-}" e="${EMAIL:-}"
+    local f="$DIR_VAR/sitio.json" t="${TITULAR:-}" n="${NIF:-}" d="${DOMICILIO:-}" e="${EMAIL:-}" r
+    local t0 n0 d0 e0 hay_env=0
+    [[ -n "$t$n$d$e" ]] && hay_env=1
     titulo "Datos del titular (aviso legal y privacidad)"
-    if [[ -f "$f" ]]; then ok "Ya existe $f: no lo toco"; return; fi
-    if [[ -z "$t$n$d$e" && $PREGUNTAR -eq 1 && -t 0 ]]; then
-        echo "  La web los necesita antes de publicarse (si los dejas vacíos, el aviso legal dice «pendiente»)."
-        if confirmar "  ¿Quieres escribirlos ahora?"; then
-            read -r -p "    Titular (nombre y apellidos o razón social): " t
-            read -r -p "    NIF/CIF: " n
-            read -r -p "    Domicilio: " d
-            read -r -p "    Correo de contacto: " e
-        fi
-    fi
-    if [[ -z "$t$n$d$e" ]]; then
-        aviso "Sin rellenar. Cuando quieras: TITULAR=… NIF=… DOMICILIO=… EMAIL=… bash install.sh --si   (o edita $f)"
+    t0="$(valor_de_sitio titular)"; n0="$(valor_de_sitio nif)"; d0="$(valor_de_sitio domicilio)"; e0="$(valor_de_sitio email)"
+    if [[ -f "$f" && $hay_env -eq 0 && "$MODO" != "titular" ]]; then
+        ok "Ya existe $f (titular: ${t0:-sin rellenar}). Para cambiar los datos:  bash install.sh --titular"
         return
+    fi
+    if [[ $hay_env -eq 0 ]]; then
+        [[ -t 0 ]] || { aviso "Sin terminal para preguntar. Usa:  TITULAR=… NIF=… DOMICILIO=… EMAIL=… bash install.sh --titular"; return; }
+        if [[ "$MODO" != "titular" ]]; then
+            echo "  La web los necesita antes de publicarse (si los dejas vacíos, el aviso legal dice «pendiente»)."
+            confirmar "  ¿Quieres escribirlos ahora?" || { aviso "Sin rellenar. Cuando quieras:  bash install.sh --titular"; return; }
+        else
+            echo "  Intro sin escribir nada = dejar el valor actual."
+        fi
+        read -r -p "    Titular (nombre y apellidos o razón social)${t0:+ [$t0]}: " r; t="${r:-$t0}"
+        read -r -p "    NIF/CIF${n0:+ [$n0]}: " r; n="${r:-$n0}"
+        read -r -p "    Domicilio${d0:+ [$d0]}: " r; d="${r:-$d0}"
+        read -r -p "    Correo de contacto${e0:+ [$e0]}: " r; e="${r:-$e0}"
+    else
+        t="${t:-$t0}"; n="${n:-$n0}"; d="${d:-$d0}"; e="${e:-$e0}"       # lo no indicado se conserva
     fi
     printf '{\n  "titular": "%s",\n  "nif": "%s",\n  "domicilio": "%s",\n  "email": "%s"\n}\n' \
         "$(json_texto "$t")" "$(json_texto "$n")" "$(json_texto "$d")" "$(json_texto "$e")" > "$TMP/sitio.json"
     install -o www-data -g www-data -m 0640 "$TMP/sitio.json" "$f"
     ok "Escrito $f (fuera del repositorio: git pull nunca lo pisa)"
+    local vacios=""
+    [[ -n "$t" ]] || vacios+=" titular"; [[ -n "$n" ]] || vacios+=" NIF"; [[ -n "$d" ]] || vacios+=" domicilio"; [[ -n "$e" ]] || vacios+=" correo"
+    [[ -z "$vacios" ]] || aviso "Aún sin rellenar:${vacios}. El aviso legal dirá «pendiente» en esos datos hasta que los pongas (bash install.sh --titular)."
 }
 
 verificar() {
@@ -560,6 +591,12 @@ desinstalar() {
 # ------------------------------------------------------------------ programa principal
 if [[ "$MODO" == "desinstalar" ]]; then
     desinstalar
+    exit 0
+fi
+if [[ "$MODO" == "titular" ]]; then
+    [[ -d "$DIR_VAR" ]] || fallo "Todavía no está instalado (no existe $DIR_VAR). Instala primero con  bash install.sh"
+    paso_titular
+    INSTALACION_COMPLETA=1
     exit 0
 fi
 

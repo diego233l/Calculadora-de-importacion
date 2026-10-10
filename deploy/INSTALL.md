@@ -31,9 +31,10 @@ Qué garantiza el script:
 - **Para sin tocar nada** si falta nginx, git, curl, PHP-FPM ≥ 8.1 en marcha o alguna extensión (`curl`, `dom`, `pdo_sqlite`, `mbstring`, `json`), y **si el puerto 8082 está ocupado** (te dice qué programa lo usa; con `PUERTO=8083 bash install.sh` eliges otro).
 - **Solo crea** `/opt/apps/calculadora-importacion`, `/var/lib/calculadora-importacion`, un sitio de nginx y un pool de PHP-FPM. No modifica, mueve ni borra nada de las otras webs ni la configuración global, y **no instala paquetes**.
 - Hace `php-fpm -t` y `nginx -t` **antes** de cada `reload` (nunca `restart`). Si alguna prueba falla, retira lo que había añadido en esa ejecución y no recarga: tus otras webs siguen igual.
-- Apunta el **código HTTP de tus otras webs antes y después** (las saca de la configuración de nginx) y te avisa si alguno cambia.
+- Apunta el **código HTTP de tus otras webs antes y después** (las saca de la configuración de nginx, por nombre y por puerto, también las que no tienen `server_name`) y te avisa si alguno cambia.
 - Es repetible: si ya está instalado, actualiza el código con `git pull` y deja los ficheros iguales si no han cambiado.
-- Datos del titular sin preguntas: `TITULAR="…" NIF="…" DOMICILIO="…" EMAIL="…" bash install.sh --si`.
+- Datos del titular: los pregunta al final, o sin preguntas con `TITULAR="…" NIF="…" DOMICILIO="…" EMAIL="…" bash install.sh --si`. Para cambiarlos más tarde sin reinstalar: `bash install.sh --titular` (Intro conserva el valor actual).
+- Si falta PHP-FPM o alguna extensión, **te enseña los paquetes nuevos exactos** que instalaría con `apt` (por simulación) y solo los instala si lo confirmas; se niega si hiciera falta quitar o actualizar algo ya instalado.
 - Quitarlo: `bash install.sh --desinstalar` (deja el código y los datos) o `bash install.sh --desinstalar --borrar-todo`.
 
 Se ha probado en un contenedor Ubuntu 24.04 con nginx 1.24, PHP-FPM 8.3 y otras dos webs de ejemplo: instalación completa como usuario con `sudo`, repetición, puerto ocupado (para sin crear nada), fallo de `nginx -t` provocado a propósito (retira lo añadido y no recarga), desinstalación y confirmación interactiva. Aun así, **el primer paso en tu VM sigue siendo `--solo-comprobar`**.
