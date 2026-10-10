@@ -461,3 +461,32 @@ prueba('W19. Resultado con tarjetas: título, destino editable, categorías con 
     $aNum = static fn(string $s): float => (float) str_replace(',', '.', str_replace('.', '', $s));
     Afirmar::igual(200.0, round($aNum($total[1]) - $aNum($total2[1]), 2), 'el total baja lo que costaba la gestoría');
 });
+
+prueba('W20. Si la versión no está en el BOE, la fila más parecida se enseña como aproximada y con el aviso a la vista', function (): void {
+    $electrico = ['marca' => 'Tesla', 'modelo' => 'Model S', 'matriculacion' => '04/2016', 'combustible' => 'electrico', 'cc' => '', 'cilindros' => '', 'co2' => '',
+        'cv' => '428', 'kw' => '315', 'boe_precio' => '', 'km' => '186.000', 'precio' => '18.000'];
+    [$app, $id, $cookies, $token] = calcularCoche($electrico + ['version' => '85D']);
+    Afirmar::verdadero($id !== '');
+    $p = html_entity_decode($app->manejar(peticionGet('/c/' . $id))->cuerpo, ENT_QUOTES, 'UTF-8');
+    Afirmar::contiene('Modelo más parecido en el BOE (no exacto)', $p);
+    Afirmar::contiene('insignia--aprox">APROX.<', $p);
+    Afirmar::falso(str_contains($p, 'Modelo identificado (base BOE)'), 'no se dice que se ha identificado');
+    Afirmar::contiene('La versión del anuncio («85D») no aparece en esta fila, que es la «90D».', $p);
+    Afirmar::contiene('No hemos encontrado tu versión exacta en la Orden del BOE', $p);
+    Afirmar::contiene('alerta alerta--atencion', $p, 'el aviso no va en las notas plegadas');
+    // La versión que sí está se identifica sin reservas
+    [$app2, $id2] = calcularCoche($electrico + ['version' => '90D', 'kw' => '310', 'cv' => '421']);
+    $q = html_entity_decode($app2->manejar(peticionGet('/c/' . $id2))->cuerpo, ENT_QUOTES, 'UTF-8');
+    Afirmar::contiene('Modelo identificado (base BOE)', $q);
+    Afirmar::contiene('insignia--auto">AUTO<', $q);
+    Afirmar::falso(str_contains($q, 'APROX.'));
+    // Elegirla a mano la convierte en una decisión del usuario, no en una aproximación
+    preg_match('/<button class="alternativa" type="submit" name="fila" value="(\d+)"/', $p, $m);
+    Afirmar::verdadero(isset($m[1]), 'hay otras filas que elegir');
+    $r = $app->manejar(peticionPost('/c/' . $id . '/boe', ['csrf' => $token, 'fila' => $m[1]], $cookies));
+    Afirmar::igual(303, $r->estado);
+    $n = html_entity_decode($app->manejar(peticionGet($r->cabeceras['Location']))->cuerpo, ENT_QUOTES, 'UTF-8');
+    Afirmar::contiene('insignia--manual">ELEGIDO<', $n);
+    Afirmar::falso(str_contains($n, 'APROX.'));
+    Afirmar::falso(str_contains($n, 'No hemos encontrado tu versión exacta'));
+});

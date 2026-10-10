@@ -554,13 +554,27 @@ final class App
         $b = $entrada['boe'] ?? null;
         if (($b['origen'] ?? null) === 'auto') {
             $pct = (int) round(((float) $b['puntuacion']) * 100);
-            $alta = ($b['confianza'] ?? '') === 'alta';
+            if (($b['confianza'] ?? '') === 'alta') {
+                return [\CalculadoraImportacion\Calculo\Partida::aviso(
+                    'boe_automatica',
+                    "Hemos buscado tu modelo en la Orden del BOE y la fila «{$b['modelo_tipo']}» encaja muy bien ($pct % de coincidencia). De ella salen el valor venal y, con él, el impuesto de matriculación y el ITP; puedes cambiarla en «Otros modelos posibles».",
+                    'info'
+                )];
+            }
+            // Sin coincidencia alta se dice qué falla, para que nadie dé por buena una fila que no es la suya
+            $motivo = '';
+            $boe = $this->boe($tablas);
+            $fila = $boe !== null ? $boe->fila((int) $b['id']) : null;
+            $e = $fila !== null ? $boe->evaluar($entrada, $fila) : null;
+            foreach ($e['motivos'] ?? [] as $m) {
+                if (str_starts_with($m, 'la versión')) {
+                    $motivo = ' (' . $m . ')';
+                }
+            }
             return [\CalculadoraImportacion\Calculo\Partida::aviso(
                 'boe_automatica',
-                $alta
-                    ? "Hemos buscado tu modelo en la Orden del BOE y la fila «{$b['modelo_tipo']}» encaja muy bien ($pct % de coincidencia). Compruébala en el apartado «Fila del BOE»: de ella salen el valor venal y, con él, el impuesto de matriculación y el ITP."
-                    : "Hemos elegido la fila «{$b['modelo_tipo']}» de la Orden del BOE, pero la coincidencia no es segura ($pct %). El valor venal, el impuesto de matriculación y el ITP dependen de ella: revisa el apartado «Fila del BOE» y elige la correcta.",
-                $alta ? 'info' : 'atencion'
+                "No hemos encontrado tu versión exacta en la Orden del BOE{$motivo}. Hemos usado la fila más parecida, «{$b['modelo_tipo']}» ($pct % de coincidencia), y de ella salen el valor venal, el impuesto de matriculación y el ITP. Si tu coche es otro, elígelo en «Otros modelos posibles» o escribe a mano el precio medio de tu versión.",
+                'atencion'
             )];
         }
         if ($b === null && $this->boe($tablas) !== null) {

@@ -111,6 +111,18 @@ $cuerpoPartida = static function (array $p, bool $conInsignias = true) use ($for
 
 $actual = $panelBoe['actual'] ?? null;
 $origenesBoe = ['auto' => 'AUTO', 'usuario' => 'ELEGIDO', 'manual' => 'MANUAL'];
+// Una fila elegida por nosotros sin coincidencia alta no es «el modelo identificado»: es lo más parecido que hay
+$aproximado = $actual !== null && ($actual['origen'] ?? '') === 'auto' && ($actual['confianza'] ?? 'alta') !== 'alta';
+$motivoAproximado = '';
+if ($aproximado) {
+    foreach ($panelBoe['filas'] as $f) {
+        foreach ($f['en_uso'] ? $f['motivos'] : [] as $motivo) {
+            if (str_starts_with($motivo, 'la versión')) {
+                $motivoAproximado = ucfirst($motivo) . '.';
+            }
+        }
+    }
+}
 $gestoriaExcluida = isset($entrada['costes_fijos']['gestoria']) && (float) $entrada['costes_fijos']['gestoria'] === 0.0;
 $gestoriaDefecto = 0.0;
 foreach ($costesDefecto as $c) {
@@ -139,17 +151,20 @@ foreach ($costesDefecto as $c) {
     </div>
 
     <?php if ($actual !== null): ?>
-      <section class="modelo" aria-label="Modelo identificado en el BOE">
-        <span class="modelo__icono"><?= icono('escudo') ?></span>
+      <section class="modelo<?= $aproximado ? ' modelo--aprox' : '' ?>" aria-label="<?= $aproximado ? 'Modelo más parecido en el BOE, no exacto' : 'Modelo identificado en el BOE' ?>">
+        <span class="modelo__icono"><?= icono($aproximado ? 'aviso' : 'escudo') ?></span>
         <div>
-          <p class="modelo__etiqueta"><?= ($actual['origen'] ?? '') === 'manual' ? 'Precio medio del BOE (indicado por ti)' : 'Modelo identificado (base BOE)' ?></p>
+          <p class="modelo__etiqueta"><?= ($actual['origen'] ?? '') === 'manual' ? 'Precio medio del BOE (indicado por ti)' : ($aproximado ? 'Modelo más parecido en el BOE (no exacto)' : 'Modelo identificado (base BOE)') ?></p>
           <p class="modelo__nombre"><?= e($actual['modelo_tipo'] ?? 'Precio medio escrito a mano') ?>
-            <span class="insignia insignia--<?= ($actual['origen'] ?? 'auto') === 'auto' ? 'auto' : 'manual' ?>"><?= e($origenesBoe[$actual['origen'] ?? 'auto'] ?? 'AUTO') ?></span></p>
+            <span class="insignia insignia--<?= $aproximado ? 'aprox' : (($actual['origen'] ?? 'auto') === 'auto' ? 'auto' : 'manual') ?>"><?= $aproximado ? 'APROX.' : e($origenesBoe[$actual['origen'] ?? 'auto'] ?? 'AUTO') ?></span></p>
           <p class="modelo__cifras">
             <span>Valor de referencia: <strong class="num"><?= eur((float) $actual['valor']) ?></strong></span>
             <?php if ($der['cvf'] !== null): ?><span>Caballos fiscales: <strong class="num"><?= e(num((float) $der['cvf'], 2)) ?></strong></span><?php endif; ?>
             <?php if (!empty($actual['puntuacion'])): ?><span>Coincidencia: <strong class="num"><?= e((int) round((float) $actual['puntuacion'] * 100)) ?> %</strong></span><?php endif; ?>
           </p>
+          <?php if ($aproximado): ?>
+            <p class="modelo__aviso"><?= $motivoAproximado !== '' ? e($motivoAproximado) . ' ' : '' ?>Comprueba que sea tu versión; si no lo es, elige la correcta en «Otros modelos posibles».</p>
+          <?php endif; ?>
         </div>
       </section>
     <?php elseif ($panelBoe['disponible']): ?>

@@ -9,6 +9,10 @@ namespace CalculadoraImportacion\Boe;
  * y los pondera (si falta un dato del coche, ese criterio no cuenta):
  *   nombre (modelo y versión), año de matriculación dentro del periodo comercial, cilindrada, potencia y combustible.
  * Devuelve las mejores filas con su puntuación y el porqué; nunca decide por el usuario.
+ *
+ * Una versión con designación propia («85D», «320d», «P100D») no se confunde con otra distinta de la misma familia
+ * («90D», «318d»): si el anuncio y la fila traen designaciones y no comparten ninguna, el nombre se castiga, porque
+ * el resto de palabras («Model S») solo dicen la familia y no la versión.
  */
 final class Emparejador
 {
@@ -154,7 +158,51 @@ final class Emparejador
                 break;
             }
         }
+        if ($this->versionDistinta($palabras, $filaPalabras) !== null) {
+            $valor *= 0.5;
+        }
         return round($valor, 3);
+    }
+
+    /**
+     * Designaciones que distinguen una versión de otra de la misma familia: letras y cifras juntas («85d», «p100d»,
+     * «320d», «xdrive30d», «a45») o un número suelto de dos o tres cifras («60», «500»). Las cifras de un decimal
+     * («2.0»), los años y los números de una cifra no cuentan.
+     *
+     * @param list<string> $palabras
+     * @return list<string>
+     */
+    private function designaciones(array $palabras): array
+    {
+        return array_values(array_filter($palabras, static fn(string $p): bool
+            => preg_match('/^(?:[a-z]{0,8}\d{2,3}[a-z]{1,4}\d{0,2}|[a-z]{1,8}\d{2,3}|\d{2,3})$/', $p) === 1));
+    }
+
+    /**
+     * Si el anuncio y la fila nombran versiones distintas («85d» frente a «90d»), devuelve la designación de la fila
+     * que no coincide; null si no hay contradicción (alguna coincide, o uno de los dos no trae designación).
+     *
+     * @param list<string> $anuncio
+     * @param list<string> $fila
+     */
+    private function versionDistinta(array $anuncio, array $fila): ?string
+    {
+        $q = $this->designaciones($anuncio);
+        $r = $this->designaciones($fila);
+        if ($q === [] || $r === []) {
+            return null;
+        }
+        foreach ($q as $a) {
+            foreach ($r as $b) {
+                $numero = static fn(string $t): string => preg_replace('/\D+/', '', $t) ?? '';
+                $suelto = static fn(string $t): bool => ctype_digit($t);
+                // Igual, o el mismo número cuando uno de los dos va sin letras («85d» y «85 kWh», «s500» y «500»)
+                if ($a === $b || (($suelto($a) || $suelto($b)) && $numero($a) === $numero($b))) {
+                    return null;
+                }
+            }
+        }
+        return $r[0];
     }
 
     /**
@@ -273,6 +321,11 @@ final class Emparejador
         $m = [];
         if ($d['nombre'] !== null) {
             $m[] = $d['nombre'] >= 0.75 ? 'el nombre coincide' : ($d['nombre'] >= 0.4 ? 'el nombre se parece' : 'el nombre se parece poco');
+        }
+        $distinta = $this->versionDistinta($q['palabras'], Normalizador::palabras($fila['modelo_tipo']));
+        if ($distinta !== null) {
+            $anuncio = array_values(array_filter($this->designaciones($q['palabras'])));
+            $m[] = 'la versión del anuncio («' . strtoupper($anuncio[0] ?? '') . '») no aparece en esta fila, que es la «' . strtoupper($distinta) . '»';
         }
         if ($d['anio'] !== null) {
             $periodo = $fila['inicio'] === null ? 'sin periodo comercial'

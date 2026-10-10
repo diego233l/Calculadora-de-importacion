@@ -127,7 +127,7 @@ prueba('R5. Lo leído se puede calcular tal cual: del anuncio al desglose, con l
     $id = substr($calc->cabeceras['Location'], 3);
     $res = $app->manejar(peticionGet('/c/' . $id))->cuerpo;
     Afirmar::contiene('Volkswagen', $res);
-    Afirmar::contiene('Fila del BOE', $res);
+    Afirmar::contiene('Modelo identificado (base BOE)', $res);
     Afirmar::falso(str_contains($res, 'No calculable (falta el precio medio del BOE)'));
 });
 

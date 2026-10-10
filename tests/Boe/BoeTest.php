@@ -159,3 +159,43 @@ prueba('B11. El emparejamiento tarda poco incluso con la marca más grande', fun
     $ms = (microtime(true) - $t) * 1000;
     Afirmar::verdadero($ms < 1500, "tardó $ms ms");
 });
+
+prueba('B12. Una versión con designación propia no se confunde con otra de la misma familia (Model S 85D no es 90D)', function (): void {
+    $coche = ['marca' => 'Tesla', 'anio' => 2016, 'kw' => 315, 'cv' => 428, 'combustible' => 'electrico'];
+    $r = emparejador()->buscar($coche + ['modelo' => 'Model S 85D'], 5);
+    foreach ($r['candidatas'] as $c) {
+        Afirmar::verdadero($c['confianza'] !== 'alta', $c['fila']['modelo_tipo'] . ': ninguna fila de otra versión puede ser una coincidencia alta');
+    }
+    $noventa = array_values(array_filter($r['candidatas'], static fn(array $c): bool => $c['fila']['modelo_tipo'] === 'MODEL S 90D'))[0];
+    Afirmar::verdadero(in_array('la versión del anuncio («85D») no aparece en esta fila, que es la «90D»', $noventa['motivos'], true), 'explica el porqué: ' . json_encode($noventa['motivos']));
+    Afirmar::verdadero($noventa['detalle']['nombre'] <= 0.4, 'el nombre se castiga');
+    // La misma fila con la versión que sí es la suya sigue siendo una coincidencia alta
+    $b = emparejador()->buscar(['kw' => 310, 'cv' => 421] + $coche + ['modelo' => 'Model S 90D'], 1)['candidatas'][0];
+    Afirmar::igual('MODEL S 90D', $b['fila']['modelo_tipo']);
+    Afirmar::igual('alta', $b['confianza']);
+    foreach ($b['motivos'] as $m) {
+        Afirmar::falso(str_starts_with($m, 'la versión'), 'sin contradicción no hay aviso');
+    }
+    // «P100D» y «100D» son versiones distintas; «85D» sí encaja con una fila «85 kWh» (mismo número)
+    $p = emparejador()->buscar(['kw' => 515, 'cv' => 700] + $coche + ['modelo' => 'Model S P100D'], 1)['candidatas'][0];
+    Afirmar::igual('MODEL S P100D', $p['fila']['modelo_tipo']);
+    $filaOchentaYCinco = ['id' => 1, 'marca' => 'TESLA', 'modelo_tipo' => 'MODEL S 85 kWh', 'inicio' => 2013, 'fin' => 2016, 'cc' => null, 'kw' => 270.0, 'cv' => 367, 'motor_codigo' => 'Elc'];
+    $q = ['palabras' => Normalizador::palabras('Model S 85D'), 'anio' => 2016, 'cc' => null, 'cv' => null, 'kw' => null, 'combustible' => 'electrico'];
+    $o = emparejador()->puntuar($filaOchentaYCinco, $q);
+    Afirmar::verdadero($o['detalle']['nombre'] > 0.5, 'el 85 de «85 kWh» es el 85 de «85D»');
+});
+
+prueba('B13. Letras y cifras: «320d» no es «318d»; «500X» no es «500L»; los decimales y los años no cuentan como versión', function (): void {
+    $bmw = emparejador()->buscar(['marca' => 'BMW', 'modelo' => '318d', 'anio' => 2017, 'cc' => 1995, 'kw' => 110, 'combustible' => 'diesel'], 3)['candidatas'];
+    Afirmar::igual('318 d', explode(' (', $bmw[0]['fila']['modelo_tipo'])[0]);
+    foreach ($bmw as $c) {
+        if (str_starts_with($c['fila']['modelo_tipo'], '320')) {
+            Afirmar::verdadero($c['confianza'] !== 'alta', '320 d no es una coincidencia alta de 318d');
+        }
+    }
+    $fiat = emparejador()->buscar(['marca' => 'Fiat', 'modelo' => '500L 1.3 Multijet', 'anio' => 2018, 'cc' => 1248, 'kw' => 70, 'combustible' => 'diesel'], 1)['candidatas'][0];
+    Afirmar::contiene('500L', $fiat['fila']['modelo_tipo']);
+    // Los números sueltos de una cifra, los decimales y los años no son «designaciones»: la versión «2.0 TDI» sigue encajando
+    $golf = emparejador()->buscar(['marca' => 'Volkswagen', 'modelo' => 'Golf VII 2.0 TDI Highline 2019', 'anio' => 2019, 'cc' => 1968, 'cv' => 150, 'combustible' => 'diesel'], 1)['candidatas'][0];
+    Afirmar::igual('alta', $golf['confianza']);
+});

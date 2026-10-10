@@ -306,9 +306,14 @@ a.destino__cambiar:hover { border-color: var(--tinta-2); }
 .modelo--vacio .modelo__icono { background: var(--tarjeta); color: var(--aviso-texto); }
 .modelo--vacio .modelo__cifras, .modelo--vacio .modelo__etiqueta { color: var(--aviso-texto); }
 .modelo--vacio a { color: inherit; font-weight: 600; }
+.modelo--aprox { border-left-color: var(--aviso-borde); background: var(--aviso-fondo); }
+.modelo--aprox .modelo__icono { background: var(--tarjeta); color: var(--aviso-texto); }
+.modelo--aprox .modelo__etiqueta, .modelo--aprox .modelo__cifras, .modelo--aprox .modelo__cifras strong, .modelo--aprox .modelo__aviso { color: var(--aviso-texto); }
+.modelo__aviso { margin: .45rem 0 0; font-size: .88rem; font-weight: 600; }
 
 .insignia { display: inline-block; font-size: .68rem; font-weight: 800; border-radius: 6px; padding: .12rem .5rem; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; line-height: 1.4; }
 .insignia--auto { background: var(--boton); color: var(--sobre-boton); }
+.insignia--aprox { background: var(--aviso-texto); color: var(--aviso-fondo); }
 .insignia--manual { background: var(--info-fondo); color: var(--info-texto); }
 .insignia--verificar { color: var(--aviso-texto); background: var(--aviso-fondo); border: 1px solid var(--aviso-borde); }
 .insignia--estimacion { color: var(--info-texto); background: var(--info-fondo); }
