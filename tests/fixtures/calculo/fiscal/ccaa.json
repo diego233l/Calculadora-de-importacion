@@ -51,6 +51,12 @@
       "regimen": "ceuta_melilla",
       "regimen_iedmt": null,
       "soportada": false
+    },
+    "GA": {
+      "nombre": "Galicia",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
     }
   }
 }

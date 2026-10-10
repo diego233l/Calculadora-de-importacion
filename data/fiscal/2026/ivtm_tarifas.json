@@ -44,5 +44,13 @@
     "fuente": "TRLRHL, art. 96.3: «se prorrateará por trimestres naturales» en la primera adquisición",
     "verificar": true,
     "verificar_motivo": "La ley no dice si el trimestre de la matriculación cuenta entero; la práctica de las ordenanzas es que sí. Confirmar en la ordenanza de cada municipio."
+  },
+  "distintivo_por_combustible": {
+    "electrico": "cero",
+    "phev": "cero_o_eco",
+    "hibrido": "eco",
+    "glp": "eco",
+    "gnc": "eco",
+    "nota": "Distintivo ambiental de la DGT esperable por combustible: eléctrico puro = CERO; híbrido enchufable = CERO (40 km o más de autonomía eléctrica) o ECO; híbrido no enchufable, GLP y GNC = ECO. El de un coche concreto consta en el Registro de Vehículos."
   }
 }

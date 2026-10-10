@@ -1,18 +1,13 @@
 {
   "anio": 2026,
-  "fuente": "Normativa autonómica del ITP (transmisión onerosa de vehículos usados) sobre RDL 1/1993, art. 7.1.A",
-  "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359",
-  "verificar": true,
-  "verificar_motivo": "Las fuentes secundarias consultadas se contradicen en la mayoría de comunidades. Solo se rellena el tipo donde coinciden al menos dos fuentes (MD, NC, PV, CT, CN, VC). En el resto tipo_general es null y las cifras halladas van en 'candidatos'. Comprobar cada tipo en la norma autonómica vigente, incluidos tramos por caballos fiscales y reducciones por antigüedad.",
+  "fuente": "Texto refundido del ITP (RDL 1/1993), art. 11.1.a: tipo estatal del 4 % para bienes muebles si la comunidad no aprueba otro; tipos de cada comunidad según «Tributación autonómica. Medidas 2026» (Hacienda) y su normativa",
+  "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+  "verificar": false,
   "base": "valor_venal",
-  "reglas_formato": "Cada regla: {si: {cvf_min, cvf_mayor_que, cvf_max, cvf_menor_igual, antiguedad_min, antiguedad_max, combustible_en}, tipo | cuota_fija}. cvf_min y antiguedad_min inclusivos; cvf_max y antiguedad_max exclusivos; cvf_mayor_que y cvf_menor_igual como indican; antigüedad en años completos. Gana la primera regla que cumple todas sus condiciones; si ninguna, tipo_general.",
+  "reglas_formato": "Cada regla: {si: {cvf_min, cvf_mayor_que, cvf_max, cvf_menor_igual, antiguedad_min, antiguedad_max, combustible_en, valor_menor_que}, tipo | cuota_fija}. cvf_min y antiguedad_min inclusivos; cvf_max, antiguedad_max y valor_menor_que exclusivos; cvf_mayor_que y cvf_menor_igual como indican; antigüedad en años completos. Gana la primera regla que cumple todas sus condiciones; si ninguna, tipo_general. reglas_vehiculos = completas | pendientes.",
   "ccaa": {
     "AN": {
       "tipo_general": 4.0,
-      "verificar": true,
-      "fuente": "Junta de Andalucía (ATRIAN), Ley 5/2021 de Tributos Cedidos: 4 % general, 8 % en turismos y todoterrenos de más de 15 CVF y 1 % en turismos con distintivo ambiental «0 emisiones»",
-      "url": "https://www.juntadeandalucia.es/organismos/atrian/areas/informacion-tributaria/impuestos/preguntas-frecuentes/impuestos-transmisiones-actos/aplicar-tp.html",
-      "nota": "Consultado mediante buscador sobre la web oficial; contrastar con la Ley 5/2021 y el informe «Tributación autonómica» de Hacienda. El tipo del 1 % se aplica aquí solo a eléctricos puros; un híbrido enchufable con etiqueta 0 podría tener derecho a él.",
       "reglas": [
         {
           "si": {
@@ -28,183 +23,195 @@
           },
           "tipo": 8.0
         }
-      ]
+      ],
+      "reglas_vehiculos": "completas",
+      "verificar": false,
+      "fuente": "Andalucía, Ley 5/2021 de Tributos Cedidos, según la Agencia Tributaria de Andalucía: 4 % general, 8 % en turismos y todoterrenos de más de 15 CVF y 1 % en turismos con categoría ambiental «0 emisiones»",
+      "url": "https://www.juntadeandalucia.es/organismos/atrian/areas/informacion-tributaria/impuestos/preguntas-frecuentes/impuestos-transmisiones-actos/aplicar-tp.html",
+      "nota": "El 1 % se aplica aquí a los eléctricos puros. Un híbrido enchufable con distintivo 0 emisiones (40 km o más de autonomía eléctrica) también tendría derecho a él, y no podemos saberlo."
     },
     "AR": {
-      "tipo_general": null,
+      "tipo_general": 4.0,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de Aragón",
-      "candidatos": [
-        {
-          "tipo": 4.0,
-          "origen": "guiafiscal.es (única fuente)"
-        }
-      ]
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Aragón 4 % de tipo general",
+      "especiales": [
+        "cuota fija en función de la cilindrada"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "AS": {
-      "tipo_general": null,
+      "tipo_general": 4.0,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de Asturias",
-      "candidatos": [
-        {
-          "tipo": 4.0,
-          "origen": "guiafiscal.es"
-        },
-        {
-          "tipo": 8.0,
-          "origen": "billeo.es"
-        }
-      ]
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Asturias 4 % de tipo general",
+      "especiales": [
+        "tipos incrementados"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "IB": {
-      "tipo_general": null,
+      "tipo_general": 4.0,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de Illes Balears",
-      "candidatos": [
-        {
-          "tipo": 4.0,
-          "origen": "guiafiscal.es, con 8 % desde 15 CVF (única fuente)"
-        }
-      ]
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Illes Balears 4 % de tipo general",
+      "especiales": [
+        "tipos incrementados y reducidos"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "CN": {
       "tipo_general": 5.5,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de Canarias (coinciden guiafiscal.es y billeo.es)"
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Canarias 5,5 % de tipo general",
+      "especiales": [
+        "cuota fija en función de la cilindrada"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "CB": {
-      "tipo_general": null,
+      "tipo_general": 6.0,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de Cantabria",
-      "candidatos": [
-        {
-          "tipo": 6.0,
-          "origen": "guiafiscal.es (única fuente)"
-        }
-      ]
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Cantabria 6 % de tipo general",
+      "especiales": [
+        "cuota fija en función de la cilindrada"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "CL": {
-      "tipo_general": null,
-      "reglas": [],
-      "verificar": true,
-      "fuente": "Normativa de Castilla y León",
-      "candidatos": [
+      "tipo_general": 5.0,
+      "reglas": [
         {
-          "tipo": 5.0,
-          "origen": "guiafiscal.es"
-        },
-        {
-          "tipo": 4.0,
-          "origen": "billeo.es"
+          "si": {
+            "cvf_mayor_que": 15
+          },
+          "tipo": 8.0
         }
-      ]
+      ],
+      "reglas_vehiculos": "completas",
+      "verificar": false,
+      "fuente": "Castilla y León, Decreto Legislativo 1/2013, art. 24.1.b (5 % en bienes muebles) y art. 25.2 (8 % en turismos y todoterrenos que superen los 15 caballos de potencia fiscal)",
+      "url": "https://www.boe.es/buscar/act.php?id=BOCL-h-2013-90254"
     },
     "CM": {
-      "tipo_general": null,
+      "tipo_general": 6.0,
       "reglas": [],
-      "verificar": true,
-      "fuente": "Normativa de Castilla-La Mancha",
-      "candidatos": [
-        {
-          "tipo": 6.0,
-          "origen": "guiafiscal.es"
-        },
-        {
-          "tipo": 9.0,
-          "origen": "billeo.es"
-        }
-      ]
+      "reglas_vehiculos": "completas",
+      "verificar": false,
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Castilla-La Mancha 6 %, sin reglas especiales para vehículos",
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf"
     },
     "CT": {
       "tipo_general": 5.0,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de Cataluña (coinciden guiafiscal.es y billeo.es)"
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Cataluña 5 % de tipo general",
+      "especiales": [
+        "tipos reducidos para determinados medios de transporte"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "VC": {
       "tipo_general": 6.0,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de la Comunitat Valenciana (coinciden guiafiscal.es y billeo.es)"
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Comunitat Valenciana 6 % de tipo general",
+      "especiales": [
+        "tipos incrementados, tipos reducidos y cuota fija en función de la cilindrada"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "EX": {
-      "tipo_general": null,
+      "tipo_general": 6.0,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de Extremadura",
-      "candidatos": [
-        {
-          "tipo": 6.0,
-          "origen": "guiafiscal.es (única fuente)"
-        }
-      ]
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Extremadura 6 % de tipo general",
+      "especiales": [
+        "tipos reducidos para determinados medios de transporte"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "GA": {
-      "tipo_general": null,
+      "tipo_general": 8.0,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de Galicia",
-      "candidatos": [
-        {
-          "tipo": 4.0,
-          "origen": "guiafiscal.es"
-        },
-        {
-          "tipo": 8.0,
-          "origen": "billeo.es"
-        }
-      ]
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Galicia 8 % de tipo general",
+      "especiales": [
+        "cuota fija en función de la cilindrada y tipos reducidos"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "MD": {
       "tipo_general": 4.0,
-      "reglas": [],
-      "verificar": true,
-      "fuente": "Normativa de la Comunidad de Madrid (coinciden guiafiscal.es y billeo.es)"
+      "reglas": [
+        {
+          "si": {
+            "valor_menor_que": 500
+          },
+          "cuota_fija": 0.0
+        }
+      ],
+      "reglas_vehiculos": "completas",
+      "verificar": false,
+      "fuente": "Comunidad de Madrid: no fija tipo propio para bienes muebles (rige el 4 % estatal, RDL 1/1993 art. 11.1.a) y bonifica el 100 % de la cuota a personas físicas si el valor real es inferior a 500 € (Decreto Legislativo 1/2010, art. 30 ter). Hacienda 2026: sin reglas especiales para vehículos",
+      "url": "https://www.boe.es/buscar/act.php?id=BOCM-m-2010-90068"
     },
     "MC": {
-      "tipo_general": null,
+      "tipo_general": 4.0,
       "reglas": [],
+      "reglas_vehiculos": "pendientes",
       "verificar": true,
-      "fuente": "Normativa de la Región de Murcia",
-      "candidatos": [
-        {
-          "tipo": 4.0,
-          "origen": "guiafiscal.es (única fuente)"
-        }
-      ]
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Región de Murcia 4 % de tipo general",
+      "especiales": [
+        "cuota fija en función de la cilindrada"
+      ],
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
+      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
     "NC": {
       "tipo_general": 4.0,
       "reglas": [],
       "verificar": true,
-      "fuente": "Normativa foral de Navarra (coinciden guiafiscal.es y billeo.es)"
+      "fuente": "Normativa foral de Navarra (coinciden guiafiscal.es y billeo.es)",
+      "reglas_vehiculos": "completas",
+      "nota": "Régimen foral: no lo cubre el informe de Hacienda (que trata las comunidades de régimen común). Tipo de dos fuentes secundarias, sin verificar."
     },
     "PV": {
       "tipo_general": 4.0,
       "reglas": [],
       "verificar": true,
-      "fuente": "Normativa foral del País Vasco (coinciden guiafiscal.es y billeo.es)"
+      "fuente": "Normativa foral del País Vasco (coinciden guiafiscal.es y billeo.es)",
+      "reglas_vehiculos": "completas",
+      "nota": "Régimen foral: no lo cubre el informe de Hacienda (que trata las comunidades de régimen común). Tipo de dos fuentes secundarias, sin verificar."
     },
     "RI": {
-      "tipo_general": null,
+      "tipo_general": 4.0,
       "reglas": [],
-      "verificar": true,
-      "fuente": "Normativa de La Rioja",
-      "candidatos": [
-        {
-          "tipo": 4.0,
-          "origen": "guiafiscal.es"
-        },
-        {
-          "tipo": 7.0,
-          "origen": "billeo.es"
-        }
-      ]
+      "reglas_vehiculos": "completas",
+      "verificar": false,
+      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): La Rioja aplica el tipo estatal del 4 %, sin reglas especiales para vehículos",
+      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf"
     }
-  }
+  },
+  "verificado": "Tipos generales de bienes muebles contrastados con el informe de Hacienda (cuadro A.2) el 10/10/2026. Reglas de vehículos de Madrid, Castilla y León, Andalucía, Castilla-La Mancha y La Rioja contrastadas con su normativa o con el propio cuadro de Hacienda. Las comunidades con reglas_vehiculos = pendientes tienen tipos o cuotas especiales para vehículos que el informe solo menciona y que aún no se han incorporado: el motor no calcula su ITP."
 }

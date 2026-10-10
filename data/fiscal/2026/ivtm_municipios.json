@@ -2,16 +2,47 @@
   "anio": 2026,
   "fuente": "Ordenanzas fiscales municipales del IVTM (TRLRHL, art. 95.4)",
   "verificar": true,
-  "verificar_motivo": "Lista de trabajo: los 50 municipios de mayor población (orden aproximado). Un coeficiente null significa 'sin verificar': el motor aplica la tarifa mínima legal (coeficiente 1) y lo avisa. No se han introducido coeficientes sin una fuente.",
+  "verificar_motivo": "Lista de trabajo: los 50 municipios de mayor población. Madrid y Salamanca están verificados con su normativa oficial. En el resto, un coeficiente null significa 'sin verificar': el motor aplica la tarifa mínima legal (coeficiente 1) y lo avisa.",
   "coeficiente_por_defecto": 1.0,
   "municipios": [
     {
       "ine": "28079",
       "nombre": "Madrid",
       "coeficiente": null,
-      "url_ordenanza": null,
-      "verificar": true,
-      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+      "url_ordenanza": "https://www.madrid.es/portales/munimadrid/es/Inicio/Actividad-economica-y-hacienda/Impuesto-sobre-Vehiculos-de-Traccion-Mecanica-IVTM-Calculo-de-la-tarifa/?vgnextfmt=default&vgnextoid=cc561a0367ac8210VgnVCM1000000b205a0aRCRD&vgnextchannel=138d31d3b28fe410VgnVCM1000000b205a0aRCRD",
+      "verificar": false,
+      "fuente": "Portal del Ayuntamiento de Madrid, «Cuotas del Ayuntamiento de Madrid para 2026» (Ordenanza Fiscal reguladora del IVTM); contrastado el 10/10/2026. Prorrateo oficial: matriculación de octubre a diciembre = 1 trimestre, de julio a septiembre = 2, de abril a junio = 3, de enero a marzo = 4",
+      "cuotas": [
+        {
+          "cvf_desde": 0,
+          "cuota": 20.0
+        },
+        {
+          "cvf_desde": 8,
+          "cuota": 59.0
+        },
+        {
+          "cvf_desde": 12,
+          "cuota": 129.0
+        },
+        {
+          "cvf_desde": 16,
+          "cuota": 179.0
+        },
+        {
+          "cvf_desde": 20,
+          "cuota": 224.0
+        }
+      ],
+      "bonificacion_ambiental": {
+        "porcentaje": 75.0,
+        "cero": "indefinida",
+        "eco": "6 años",
+        "de_oficio": true,
+        "verificar": false,
+        "nota": "Para vehículos matriculados desde el 1 de enero de 2026; se descuenta en la autoliquidación al matricular."
+      },
+      "prorrateo_confirmado": true
     },
     {
       "ine": "08019",
@@ -353,9 +384,40 @@
       "ine": "37274",
       "nombre": "Salamanca",
       "coeficiente": null,
-      "url_ordenanza": null,
-      "verificar": true,
-      "fuente": "Ordenanza fiscal del IVTM del ayuntamiento (pendiente de localizar)"
+      "url_ordenanza": "https://www.oager.com/verDoc.aspx?doc=931&tipo=6",
+      "verificar": false,
+      "fuente": "Ordenanza Fiscal n.º 2 del Ayuntamiento de Salamanca (OAGER), art. 6.1; coeficientes en vigor desde 2017 y mantenidos tras la modificación de 2025 (el Pleno de 20/12/2024 rechazó rebajarlos). Prorrateo: trimestres que quedan, incluido el de la adquisición (art. 8.3)",
+      "coeficientes": [
+        {
+          "cvf_desde": 0,
+          "coeficiente": 1.9908
+        },
+        {
+          "cvf_desde": 8,
+          "coeficiente": 1.9883
+        },
+        {
+          "cvf_desde": 12,
+          "coeficiente": 2.0
+        },
+        {
+          "cvf_desde": 16,
+          "coeficiente": 2.0
+        },
+        {
+          "cvf_desde": 20,
+          "coeficiente": 2.0
+        }
+      ],
+      "bonificacion_ambiental": {
+        "porcentaje": 75.0,
+        "cero": "indefinida",
+        "eco": "6 años",
+        "de_oficio": false,
+        "verificar": false,
+        "nota": "Vehículos matriculados desde el 22/04/2016. Es una bonificación rogada, que puede surtir efecto en el ejercicio de la matriculación si se solicita a tiempo."
+      },
+      "prorrateo_confirmado": true
     },
     {
       "ine": "21041",

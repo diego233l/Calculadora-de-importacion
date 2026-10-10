@@ -35,5 +35,12 @@
       "exponente": 0.6
     },
     "electrico_divisor_kw": 5.152
+  },
+  "distintivo_por_combustible": {
+    "electrico": "cero",
+    "phev": "cero_o_eco",
+    "hibrido": "eco",
+    "glp": "eco",
+    "gnc": "eco"
   }
 }

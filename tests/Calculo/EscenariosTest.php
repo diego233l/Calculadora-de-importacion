@@ -345,3 +345,68 @@ prueba('23. Estimaciones: los valores por defecto editables se marcan; las cifra
     $editado = Calculadora::calcular(entradaBase(['costes_fijos' => ['itv_importacion' => 45]]), tablasPrueba());
     Afirmar::falso(partida($editado, 'itv_importacion')['estimacion'], 'si el usuario lo cambia, ya no es una estimación nuestra');
 });
+
+prueba('24. IVTM con cuotas propias del ayuntamiento (como Madrid) y con coeficientes distintos por tramo (como Salamanca)', function (): void {
+    // CVF 13,31 (1.998 cm³, 4 cilindros). Municipio con cuotas en euros: tramo 12-15,99 = 125 € al año; octubre = 1 trimestre -> 31,25.
+    $cuotas = Calculadora::calcular(entradaBase(['municipio' => '46901']), tablasPrueba());
+    $p = partida($cuotas, 'ivtm');
+    Afirmar::euros(31.25, $p['importe']);
+    Afirmar::euros(125, $p['base']);
+    Afirmar::igual(null, $p['tipo']);
+    Afirmar::falso(in_array('ivtm_tarifa_minima', codigosAviso($cuotas), true));
+    // Coeficientes por tramo: 12-15,99 CVF -> tarifa 70 x 2,0 = 140 -> 35; menos de 12 CVF (1.500 cm³ -> 11,20) -> tarifa 30 x 1,8 = 54 -> 13,50.
+    $a = Calculadora::calcular(entradaBase(['municipio' => '20901']), tablasPrueba());
+    Afirmar::euros(35, partida($a, 'ivtm')['importe']);
+    Afirmar::igual(2.0, partida($a, 'ivtm')['tipo']);
+    $b = Calculadora::calcular(entradaBase(['municipio' => '20901', 'cc' => 1500]), tablasPrueba());
+    Afirmar::euros(13.5, partida($b, 'ivtm')['importe']);
+    Afirmar::euros(54, partida($b, 'ivtm')['base']);
+    Afirmar::igual(1.8, partida($b, 'ivtm')['tipo']);
+    // Prorrateo: en abril son 3 trimestres. 125 x 3/4 = 93,75
+    $abril = Calculadora::calcular(entradaBase(['municipio' => '46901', 'fecha_calculo' => '2026-04-01']), tablasPrueba());
+    Afirmar::euros(93.75, partida($abril, 'ivtm')['importe']);
+});
+
+prueba('25. Bonificación ambiental del IVTM: se descuenta si el ayuntamiento la concede de oficio; si hay que pedirla, solo se avisa', function (): void {
+    $electrico = ['combustible' => 'electrico', 'co2_wltp' => null, 'cc' => null, 'cilindros' => null, 'kw' => 100];
+    // Eléctrico, CVF 19,40: cuota de 175 € -> octubre: 43,75. Bonificación de oficio del 75 %: -32,81 -> 10,94.
+    $r = Calculadora::calcular(entradaBase($electrico + ['municipio' => '46901']), tablasPrueba());
+    Afirmar::euros(10.94, partida($r, 'ivtm')['importe']);
+    Afirmar::euros(175, partida($r, 'ivtm')['base'], 'la base sigue siendo la cuota anual sin bonificar');
+    Afirmar::verdadero(in_array('ivtm_bonificacion_aplicada', codigosAviso($r), true));
+    Afirmar::contiene('-32,81', partida($r, 'ivtm')['explicacion']);
+    // Híbrido (ECO) en el mismo municipio: también se descuenta. Gasolina: no.
+    $hib = Calculadora::calcular(entradaBase(['combustible' => 'hibrido', 'municipio' => '46901']), tablasPrueba());
+    Afirmar::euros(7.81, partida($hib, 'ivtm')['importe']);   // 31,25 - 23,44
+    $gas = Calculadora::calcular(entradaBase(['municipio' => '46901']), tablasPrueba());
+    Afirmar::euros(31.25, partida($gas, 'ivtm')['importe']);
+    // PHEV: el distintivo (CERO o ECO) depende de la autonomía eléctrica y no se sabe: solo aviso
+    $phev = Calculadora::calcular(entradaBase(['combustible' => 'phev', 'municipio' => '46901']), tablasPrueba());
+    Afirmar::euros(31.25, partida($phev, 'ivtm')['importe']);
+    Afirmar::verdadero(in_array('ivtm_bonificacion', codigosAviso($phev), true));
+    // Ayuntamiento que la concede a petición: no se descuenta, pero se avisa con el ahorro posible
+    $rogada = Calculadora::calcular(entradaBase(['combustible' => 'hibrido', 'municipio' => '20901']), tablasPrueba());
+    Afirmar::euros(35, partida($rogada, 'ivtm')['importe']);
+    $aviso = array_values(array_filter($rogada['avisos'], fn($a) => $a['codigo'] === 'ivtm_bonificacion'))[0];
+    Afirmar::contiene('unos 26,25 € menos', $aviso['texto']);   // 35 x 75 %
+    Afirmar::contiene('Hay que solicitarla.', $aviso['texto']);
+    // Sin ordenanza verificada: aviso genérico
+    $generico = Calculadora::calcular(entradaBase(['combustible' => 'electrico', 'co2_wltp' => null, 'cc' => null, 'cilindros' => null, 'kw' => 100, 'municipio' => '28900']), tablasPrueba());
+    $texto = array_values(array_filter($generico['avisos'], fn($a) => $a['codigo'] === 'ivtm_bonificacion'))[0]['texto'];
+    Afirmar::contiene('la ley permite hasta un 75 %', $texto);
+});
+
+prueba('26. ITP: comunidad con tipos especiales para vehículos sin incorporar -> no se calcula; bonificación de Madrid por valor bajo', function (): void {
+    $r = Calculadora::calcular(entradaBase(['municipio' => '15900']), tablasPrueba());
+    $p = partida($r, 'itp_iva');
+    Afirmar::igual('no_calculable', $p['estado']);
+    Afirmar::contiene('8 %', $p['motivo']);
+    Afirmar::contiene('cuota fija en función de la cilindrada', $p['motivo']);
+    Afirmar::falso($r['completo']);
+    // Madrid de prueba: bonificación del 100 % si el valor venal es inferior a 500 €. Antigüedad 4 años -> 50 %.
+    // Fila BOE 999 -> valor venal 499,50 -> cuota 0. Fila BOE 1.000 -> 500 -> no es inferior -> 4 % = 20.
+    $bajo = Calculadora::calcular(entradaBase(['fila_boe' => ['precio' => 999]]), tablasPrueba());
+    Afirmar::euros(0, partida($bajo, 'itp_iva')['importe']);
+    $justo = Calculadora::calcular(entradaBase(['fila_boe' => ['precio' => 1000]]), tablasPrueba());
+    Afirmar::euros(20, partida($justo, 'itp_iva')['importe']);
+});

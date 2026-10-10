@@ -32,6 +32,10 @@
     "51": {
       "nombre": "Ceuta",
       "ccaa": "CE"
+    },
+    "15": {
+      "nombre": "A Coruña",
+      "ccaa": "GA"
     }
   },
   "municipios": [
@@ -87,6 +91,24 @@
     [
       "51900",
       "Ceuta de prueba",
+      40.0,
+      -3.0
+    ],
+    [
+      "46901",
+      "Valencia con cuotas",
+      40.0,
+      -3.0
+    ],
+    [
+      "20901",
+      "Donostia con coeficientes",
+      40.0,
+      -3.0
+    ],
+    [
+      "15900",
+      "Coruña de prueba",
       40.0,
       -3.0
     ]

@@ -53,10 +53,15 @@ prueba('D2. Cualquier nodo con «verificar» lo declara como booleano y con fuen
     }
 });
 
-prueba('D3. Un tipo de ITP a null debe documentar sus candidatos; nunca se deja un hueco mudo', function (): void {
+prueba('D3. ITP: cada comunidad declara si sus reglas de vehículos están completas; un tipo null o pendiente nunca queda mudo', function (): void {
     foreach (glob(dataDir() . '/fiscal/*/itp.json') as $f) {
         $d = jsonReal($f);
         foreach ($d['ccaa'] as $codigo => $fila) {
+            Afirmar::verdadero(in_array($fila['reglas_vehiculos'], ['completas', 'pendientes'], true), "$codigo: reglas_vehiculos inválido");
+            if ($fila['reglas_vehiculos'] === 'pendientes') {
+                Afirmar::verdadero(!empty($fila['especiales']), "$codigo: reglas pendientes sin explicar cuáles");
+                Afirmar::verdadero($fila['verificar'], "$codigo: las reglas pendientes deben estar marcadas «verificar»");
+            }
             if ($fila['tipo_general'] === null) {
                 Afirmar::verdadero(!empty($fila['candidatos']), "$codigo: tipo_general null sin «candidatos»");
                 Afirmar::verdadero($fila['verificar'], "$codigo: un tipo null debe estar marcado «verificar»");
@@ -162,7 +167,17 @@ prueba('D8. Con los datos reales el motor calcula un caso completo sin lanzar ex
     ], $t);
     // Madrid tiene tipo de ITP, así que no falta ninguna partida
     Afirmar::verdadero($r['completo']);
-    Afirmar::verdadero($r['verificar_pendiente'], 'mientras haya datos sin verificar debe constar en el resultado');
+    // En Madrid todas las normas que intervienen están verificadas; solo quedan las estimaciones editables
+    Afirmar::falso($r['verificar_pendiente'], 'Madrid, particular, gasolina/diésel: no debería quedar nada por verificar');
+    Afirmar::verdadero($r['contiene_estimaciones']);
+    // En un municipio sin ordenanza verificada (Sevilla: tarifa mínima del IVTM) sí debe constar
+    $sevilla = Calculadora::calcular([
+        'fecha_matriculacion' => '2021-03-01', 'fecha_calculo' => '2026-10-10', 'km' => 80000,
+        'cc' => 1998, 'cilindros' => 4, 'combustible' => 'diesel', 'co2_wltp' => 170, 'precio' => 18000,
+        'vendedor' => 'particular', 'cp_vendedor' => '80331', 'municipio' => '41091', 'fila_boe' => ['precio' => 38000],
+    ], $t);
+    Afirmar::verdadero($sevilla['verificar_pendiente']);
+    Afirmar::verdadero(partida($sevilla, 'ivtm')['verificar']);
     // Valor venal: 38.000 x coeficiente de 5 años completos
     Afirmar::euros(38000 * 0.39, partida($r, 'valor_venal')['importe']);
     // Tipo de IEDMT de 170 g/km en la península según la ley (tramo >= 160 y < 200)
@@ -198,4 +213,87 @@ prueba('D10. Datos oficiales verificados: tipos autonómicos del IEDMT (AEAT) y 
     $tasa = array_values(array_filter($t['costes_fijos']['partidas'], fn($p) => $p['clave'] === 'tasa_dgt'))[0];
     Afirmar::igual(99.77, $tasa['importe']);
     Afirmar::falso($tasa['estimacion']);
+});
+
+/** Entrada común de los tests de datos reales: gasolina de 5 años, valor venal 14.820 € (38.000 x 39 %). */
+function entradaReal(array $cambios = []): array
+{
+    return array_merge([
+        'fecha_matriculacion' => '2021-03-01', 'fecha_calculo' => '2026-10-10', 'km' => 80000,
+        'cc' => 1998, 'cilindros' => 4, 'combustible' => 'gasolina', 'co2_wltp' => 130, 'precio' => 18000,
+        'vendedor' => 'particular', 'cp_vendedor' => '80331', 'municipio' => '28079', 'fila_boe' => ['precio' => 38000],
+    ], $cambios);
+}
+
+prueba('D11. IVTM real de Madrid (cuotas del Ayuntamiento 2026) y Salamanca (coeficientes por tramo)', function (): void {
+    $t = Tablas::cargar(dataDir(), 2026);
+    $ivtm = fn(array $cambios) => partida(Calculadora::calcular(entradaReal($cambios), $t), 'ivtm');
+
+    // Madrid: 12-15,99 CVF = 129,00 € al año; octubre = 1 trimestre = 32,25 € (cifras del portal del Ayuntamiento)
+    $m = $ivtm([]);
+    Afirmar::euros(32.25, $m['importe']);
+    Afirmar::euros(129.0, $m['base']);
+    Afirmar::falso($m['verificar'], 'Madrid está verificado');
+    // Madrid, otros tramos: menos de 8 CVF = 20 €; 1.000 cm³ y 3 cilindros = 7,83 CVF -> 5 € el trimestre
+    Afirmar::euros(5.0, $ivtm(['cc' => 1000, 'cilindros' => 3])['importe']);
+    // Madrid, marzo: 4 trimestres = cuota entera
+    Afirmar::euros(129.0, $ivtm(['fecha_calculo' => '2026-03-15'])['importe']);
+    Afirmar::euros(96.75, $ivtm(['fecha_calculo' => '2026-04-15'])['importe']);   // 3 trimestres: cifra de la tabla oficial
+
+    // Madrid, eléctrico de 100 kW (CVF 19,40 -> 179 €): trimestre 44,75 menos la bonificación del 75 % de oficio (33,56) = 11,19
+    $e = $ivtm(['combustible' => 'electrico', 'co2_wltp' => null, 'cc' => null, 'cilindros' => null, 'kw' => 100]);
+    Afirmar::euros(11.19, $e['importe']);
+    Afirmar::euros(179.0, $e['base']);
+
+    // Salamanca (37274): 12-15,99 CVF = 71,94 x 2,0 = 143,88 al año -> 35,97 en octubre
+    $s = $ivtm(['municipio' => '37274']);
+    Afirmar::euros(35.97, $s['importe']);
+    Afirmar::euros(143.88, $s['base']);
+    Afirmar::igual(2.0, $s['tipo']);
+    Afirmar::falso($s['verificar'], 'Salamanca está verificado');
+    // Menos de 8 CVF: 12,62 x 1,9908 = 25,12 (la prensa local publica 25,12) -> 6,28 el trimestre
+    $chico = $ivtm(['municipio' => '37274', 'cc' => 1000, 'cilindros' => 3]);
+    Afirmar::euros(25.12, $chico['base']);
+    Afirmar::euros(6.28, $chico['importe']);
+    // 8-11,99 CVF: 34,08 x 1,9883 = 67,76 (cifra publicada para un turismo de 11,99 CVF)
+    Afirmar::euros(67.76, $ivtm(['municipio' => '37274', 'cc' => 1500])['base']);
+    // Salamanca: la bonificación del 75 % es rogada, así que no se resta; se avisa
+    $r = Calculadora::calcular(entradaReal(['municipio' => '37274', 'combustible' => 'electrico', 'co2_wltp' => null, 'cc' => null, 'cilindros' => null, 'kw' => 100]), $t);
+    Afirmar::euros(44.81, partida($r, 'ivtm')['importe']);   // 89,61 x 2,0 = 179,22 al año; 44,805 en octubre -> 44,81
+    Afirmar::verdadero(in_array('ivtm_bonificacion', codigosAviso($r), true));
+    Afirmar::falso(in_array('ivtm_bonificacion_aplicada', codigosAviso($r), true));
+});
+
+prueba('D12. ITP real: Madrid y Castilla y León (Salamanca) verificados, más Andalucía, Castilla-La Mancha y La Rioja', function (): void {
+    $t = Tablas::cargar(dataDir(), 2026);
+    $itp = fn(array $cambios) => partida(Calculadora::calcular(entradaReal($cambios), $t), 'itp_iva');
+    // Valor venal: 38.000 x 39 % (más de 5 y hasta 6 años) = 14.820
+    // Madrid 4 %: 592,80
+    $md = $itp([]);
+    Afirmar::euros(592.80, $md['importe']);
+    Afirmar::igual(4.0, $md['tipo']);
+    Afirmar::falso($md['verificar']);
+    // Madrid: valor venal inferior a 500 € -> bonificación del 100 % (art. 30 ter): 1.000 x 39 % = 390
+    Afirmar::euros(0.0, $itp(['fila_boe' => ['precio' => 1000]])['importe']);
+    // Castilla y León (Salamanca, 37274): 5 % = 741,00; con más de 15 CVF (3.000 cm³, 6 cil. = 19,98) 8 % = 1.185,60
+    $cl = $itp(['municipio' => '37274']);
+    Afirmar::euros(741.0, $cl['importe']);
+    Afirmar::igual(5.0, $cl['tipo']);
+    Afirmar::falso($cl['verificar']);
+    Afirmar::euros(1185.60, $itp(['municipio' => '37274', 'cc' => 3000, 'cilindros' => 6])['importe']);
+    // Exactamente 15 CVF no es «superior a 15»: la regla usa «mayor que»
+    Afirmar::euros(741.0, $itp(['municipio' => '37274', 'fila_boe' => ['precio' => 38000, 'cvf' => 15.0]])['importe']);
+    // Castilla-La Mancha 6 % = 889,20 (Toledo, 45168) y La Rioja 4 % = 592,80 (Logroño, 26089)
+    Afirmar::euros(889.20, $itp(['municipio' => '45168'])['importe']);
+    Afirmar::euros(592.80, $itp(['municipio' => '26089'])['importe']);
+    // Andalucía (Sevilla, 41091): 4 % = 592,80; más de 15 CVF 8 % = 1.185,60; eléctrico 1 % = 148,20
+    Afirmar::euros(592.80, $itp(['municipio' => '41091'])['importe']);
+    Afirmar::euros(1185.60, $itp(['municipio' => '41091', 'cc' => 3000, 'cilindros' => 6])['importe']);
+    Afirmar::euros(148.20, $itp(['municipio' => '41091', 'combustible' => 'electrico', 'co2_wltp' => null, 'cc' => null, 'cilindros' => null, 'kw' => 100])['importe']);
+    // Comunidades con reglas de vehículos pendientes: no se calcula y se explica
+    foreach (['15030' => 'Galicia', '36057' => 'Galicia', '33044' => 'Asturias', '30030' => 'Murcia', '46250' => 'Comunitat Valenciana'] as $ine => $nombre) {
+        $p = $itp(['municipio' => (string) $ine]);
+        Afirmar::igual('no_calculable', $p['estado'], $nombre);
+        Afirmar::contiene('aún no hemos incorporado', $p['motivo'], $nombre);
+    }
 });

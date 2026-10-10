@@ -7,7 +7,14 @@
   "ccaa": {
     "MD": {
       "tipo_general": 4.0,
-      "reglas": [],
+      "reglas": [
+        {
+          "si": {
+            "valor_menor_que": 500
+          },
+          "cuota_fija": 0.0
+        }
+      ],
       "verificar": false,
       "fuente": "prueba"
     },
@@ -92,6 +99,16 @@
           "origen": "fuente B"
         }
       ]
+    },
+    "GA": {
+      "tipo_general": 8.0,
+      "reglas": [],
+      "reglas_vehiculos": "pendientes",
+      "especiales": [
+        "cuota fija en función de la cilindrada"
+      ],
+      "verificar": true,
+      "fuente": "prueba"
     }
   }
 }

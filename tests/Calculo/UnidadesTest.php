@@ -93,6 +93,10 @@ prueba('U4. Reglas de ITP por CVF y antigüedad: límites inclusivos/exclusivos'
     Afirmar::verdadero(ItpIva::reglaCumple(['cvf_mayor_que' => 15], 15.01, 0));
     Afirmar::verdadero(ItpIva::reglaCumple(['cvf_menor_igual' => 15], 15.0, 0));
     Afirmar::falso(ItpIva::reglaCumple(['cvf_menor_igual' => 15], 15.01, 0));
+    // Valor venal (bonificación de Madrid para bienes de menos de 500 €)
+    Afirmar::verdadero(ItpIva::reglaCumple(['valor_menor_que' => 500], null, 0, null, 499.99));
+    Afirmar::falso(ItpIva::reglaCumple(['valor_menor_que' => 500], null, 0, null, 500.0));
+    Afirmar::igual(null, ItpIva::reglaCumple(['valor_menor_que' => 500], null, 0, null, null));
     // Combustible
     Afirmar::verdadero(ItpIva::reglaCumple(['combustible_en' => ['electrico']], null, 0, 'electrico'));
     Afirmar::falso(ItpIva::reglaCumple(['combustible_en' => ['electrico']], null, 0, 'diesel'));

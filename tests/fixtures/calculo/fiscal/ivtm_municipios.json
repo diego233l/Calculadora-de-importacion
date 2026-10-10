@@ -20,6 +20,81 @@
       "url_ordenanza": null,
       "verificar": true,
       "fuente": "prueba"
+    },
+    {
+      "ine": "46901",
+      "nombre": "Valencia con cuotas",
+      "coeficiente": null,
+      "verificar": false,
+      "fuente": "prueba",
+      "url_ordenanza": "https://example.invalid/46901",
+      "cuotas": [
+        {
+          "cvf_desde": 0,
+          "cuota": 25.0
+        },
+        {
+          "cvf_desde": 8,
+          "cuota": 60.0
+        },
+        {
+          "cvf_desde": 12,
+          "cuota": 125.0
+        },
+        {
+          "cvf_desde": 16,
+          "cuota": 175.0
+        },
+        {
+          "cvf_desde": 20,
+          "cuota": 225.0
+        }
+      ],
+      "bonificacion_ambiental": {
+        "porcentaje": 75.0,
+        "cero": "indefinida",
+        "eco": "6 años",
+        "de_oficio": true,
+        "verificar": false
+      }
+    },
+    {
+      "ine": "20901",
+      "nombre": "Donostia con coeficientes",
+      "coeficiente": null,
+      "verificar": false,
+      "fuente": "prueba",
+      "url_ordenanza": "https://example.invalid/20901",
+      "coeficientes": [
+        {
+          "cvf_desde": 0,
+          "coeficiente": 1.5
+        },
+        {
+          "cvf_desde": 8,
+          "coeficiente": 1.8
+        },
+        {
+          "cvf_desde": 12,
+          "coeficiente": 2.0
+        },
+        {
+          "cvf_desde": 16,
+          "coeficiente": 2.0
+        },
+        {
+          "cvf_desde": 20,
+          "coeficiente": 2.0
+        }
+      ],
+      "bonificacion_ambiental": {
+        "porcentaje": 75.0,
+        "cero": "indefinida",
+        "eco": "6 años",
+        "de_oficio": false,
+        "verificar": false,
+        "nota": "Hay que solicitarla."
+      }
     }
   ]
 }

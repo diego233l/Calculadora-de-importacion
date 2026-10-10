@@ -132,9 +132,20 @@ final class ItpIva
                 'No hay tabla de ITP para esta comunidad autónoma.', $fuente, true, $url)], 'avisos' => []];
         }
 
+        if (($fila['reglas_vehiculos'] ?? 'completas') === 'pendientes') {
+            $general = $fila['tipo_general'] !== null
+                ? 'El tipo general para bienes muebles es del ' . Partida::num((float) $fila['tipo_general']) . ' %, pero '
+                : '';
+            $especiales = implode(' y ', $fila['especiales'] ?? ['reglas especiales']);
+            return ['partidas' => [Partida::noCalculable('itp_iva', $concepto,
+                $general . 'esta comunidad aplica además a los vehículos ' . $especiales . ', que aún no hemos incorporado. '
+                . 'No calculamos el ITP para no darte una cifra errónea: pregúntalo a tu gestoría o en la agencia tributaria de tu comunidad.',
+                $fuente, true, $url)], 'avisos' => []];
+        }
+
         $regla = null;
         foreach ($fila['reglas'] ?? [] as $r) {
-            $cumple = self::reglaCumple($r['si'] ?? [], $ctx['cvf'], $ctx['antiguedad_anios'], $n['combustible']);
+            $cumple = self::reglaCumple($r['si'] ?? [], $ctx['cvf'], $ctx['antiguedad_anios'], $n['combustible'], $ctx['valor_venal']);
             if ($cumple === null) {
                 return ['partidas' => [Partida::noCalculable('itp_iva', $concepto,
                     'El ITP de esta comunidad depende de los caballos fiscales y no se han podido calcular.', $fuente, $verificar, $url)], 'avisos' => []];
@@ -175,9 +186,9 @@ final class ItpIva
     /**
      * true / false, o null si la regla necesita un dato que no se conoce (los CVF o el combustible).
      * Condiciones: cvf_min (>=), cvf_mayor_que (>), cvf_max (<), cvf_menor_igual (<=),
-     * antiguedad_min (>=), antiguedad_max (<), combustible_en (lista).
+     * antiguedad_min (>=), antiguedad_max (<), combustible_en (lista), valor_menor_que (< valor venal).
      */
-    public static function reglaCumple(array $si, ?float $cvf, int $antiguedad, ?string $combustible = null): ?bool
+    public static function reglaCumple(array $si, ?float $cvf, int $antiguedad, ?string $combustible = null, ?float $valor = null): ?bool
     {
         $usaCvf = isset($si['cvf_min']) || isset($si['cvf_max']) || isset($si['cvf_mayor_que']) || isset($si['cvf_menor_igual']);
         if ($usaCvf && $cvf === null) {
@@ -185,6 +196,9 @@ final class ItpIva
         }
         if (isset($si['combustible_en']) && $combustible === null) {
             return null;
+        }
+        if (isset($si['valor_menor_que']) && ($valor === null || $valor >= $si['valor_menor_que'])) {
+            return $valor === null ? null : false;
         }
         if (isset($si['combustible_en']) && !in_array($combustible, $si['combustible_en'], true)) {
             return false;
