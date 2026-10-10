@@ -8,11 +8,6 @@
     "meses_max": 6,
     "km_max": 6000
   },
-  "igic": {
-    "valor": 5.0,
-    "fuente": "prueba",
-    "verificar": false
-  },
   "iva_alemania": {
     "valor": 10.0,
     "fuente": "prueba",

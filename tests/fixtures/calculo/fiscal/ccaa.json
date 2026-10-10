@@ -16,12 +16,6 @@
       "regimen_iedmt": "peninsula_baleares",
       "soportada": true
     },
-    "CN": {
-      "nombre": "Canarias",
-      "regimen": "canarias",
-      "regimen_iedmt": "canarias",
-      "soportada": true
-    },
     "IB": {
       "nombre": "Illes Balears",
       "regimen": "comun",
@@ -36,7 +30,7 @@
     },
     "PV": {
       "nombre": "País Vasco",
-      "regimen": "foral",
+      "regimen": "comun",
       "regimen_iedmt": "peninsula_baleares",
       "soportada": true
     },

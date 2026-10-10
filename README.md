@@ -51,16 +51,16 @@ Cada valor de `data/fiscal/` lleva su fuente y la marca `verificar`. `php script
 lista lo que sigue pendiente. A fecha de esta versión:
 
 - **Verificado con el texto oficial:** depreciación (anexo IV de la Orden HAC/1501/2025), fórmula de
-  minoración del IEDMT, tipos del IEDMT estatales, de Canarias y autonómicos, definición de coche nuevo,
+  minoración del IEDMT, tipos del IEDMT estatales y autonómicos, definición de coche nuevo, IVA alemán (UStG),
   tarifas y prorrateo del IVTM, fórmula de caballos fiscales (con truncado), tasa 1.1 de la DGT, tipo
   estatal del ITP, y el ITP completo de Madrid, Castilla y León, Andalucía, Castilla-La Mancha y La Rioja.
 - **IVTM municipal:** verificadas las ordenanzas de Madrid y Salamanca. En el resto el motor aplica la
   tarifa mínima legal y lo avisa.
 - **ITP de las demás comunidades:** el tipo general está verificado (informe de Hacienda), pero
-  Aragón, Asturias, Baleares, Canarias, Cantabria, Cataluña, Valencia, Extremadura, Galicia y Murcia tienen
+  Aragón, Asturias, Baleares, Cantabria, Cataluña, Valencia, Extremadura, Galicia y Murcia tienen
   tipos o cuotas especiales para vehículos que aún no se han incorporado. El motor no calcula su ITP y lo
   explica, en lugar de dar una cifra errónea.
-- **Sin verificar:** el IGIC de Canarias, el 19 % de IVA alemán y el régimen foral (Navarra y País Vasco).
+- **Fuera del alcance:** Canarias, Navarra, País Vasco, Ceuta y Melilla (régimen fiscal distinto); el motor las rechaza con un mensaje claro.
 - **Estimaciones editables** (no son normas): ITV, COC, placas, gestoría, matrícula de exportación y los
   parámetros de transporte. Cada partida lo indica con `estimacion`.
 

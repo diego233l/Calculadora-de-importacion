@@ -35,37 +35,6 @@
         "fuente": "Art. 70.1, epígrafe 4.º b): vehículos cuyo CO2 se debe medir y no se acredita",
         "verificar": false
       }
-    },
-    "canarias": {
-      "fuente": "Ley 38/1992, art. 70.2.b (columna Canarias): 0 %, 3,75 %, 8,75 % y 13,75 %",
-      "verificar": false,
-      "tramos": [
-        {
-          "desde": 0,
-          "desde_inclusivo": true,
-          "tipo": 0.0
-        },
-        {
-          "desde": 120,
-          "desde_inclusivo": false,
-          "tipo": 3.75
-        },
-        {
-          "desde": 160,
-          "desde_inclusivo": true,
-          "tipo": 8.75
-        },
-        {
-          "desde": 200,
-          "desde_inclusivo": true,
-          "tipo": 13.75
-        }
-      ],
-      "tipo_si_co2_no_acreditado": {
-        "tipo": 13.75,
-        "fuente": "Art. 70.1, epígrafe 4.º b) con el tipo de Canarias",
-        "verificar": false
-      }
     }
   },
   "base_imponible_usados_extranjero": {

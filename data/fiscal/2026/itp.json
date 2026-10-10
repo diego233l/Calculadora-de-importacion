@@ -66,18 +66,6 @@
       "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
       "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
     },
-    "CN": {
-      "tipo_general": 5.5,
-      "reglas": [],
-      "reglas_vehiculos": "pendientes",
-      "verificar": true,
-      "fuente": "Hacienda, «Tributación autonómica. Medidas 2026», cap. I, anexo V (cuadro A.2: transmisión de bienes muebles): Canarias 5,5 % de tipo general",
-      "especiales": [
-        "cuota fija en función de la cilindrada"
-      ],
-      "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
-      "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
-    },
     "CB": {
       "tipo_general": 6.0,
       "reglas": [],
@@ -187,22 +175,6 @@
       ],
       "url": "https://www.hacienda.gob.es/sgfal/financiacionterritorial/autonomica/capitulo-i-tributacion-autonomica-2026.pdf",
       "nota": "El informe solo indica que existen estas reglas para vehículos; falta consultar la norma de la comunidad para incorporarlas."
-    },
-    "NC": {
-      "tipo_general": 4.0,
-      "reglas": [],
-      "verificar": true,
-      "fuente": "Normativa foral de Navarra (coinciden guiafiscal.es y billeo.es)",
-      "reglas_vehiculos": "completas",
-      "nota": "Régimen foral: no lo cubre el informe de Hacienda (que trata las comunidades de régimen común). Tipo de dos fuentes secundarias, sin verificar."
-    },
-    "PV": {
-      "tipo_general": 4.0,
-      "reglas": [],
-      "verificar": true,
-      "fuente": "Normativa foral del País Vasco (coinciden guiafiscal.es y billeo.es)",
-      "reglas_vehiculos": "completas",
-      "nota": "Régimen foral: no lo cubre el informe de Hacienda (que trata las comunidades de régimen común). Tipo de dos fuentes secundarias, sin verificar."
     },
     "RI": {
       "tipo_general": 4.0,

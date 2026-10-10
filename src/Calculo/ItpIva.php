@@ -7,7 +7,6 @@ namespace CalculadoraImportacion\Calculo;
 /**
  * Qué impuesto "de la compraventa" se paga en España:
  *   - medio de transporte NUEVO (<= 6 meses o <= 6.000 km): IVA (modelo 309) sobre el precio sin IVA alemán.
- *     En Canarias se sustituye por el IGIC.
  *   - usado comprado a un PARTICULAR: ITP de la comunidad sobre el valor venal del BOE.
  *   - usado comprado a un PROFESIONAL: el IVA alemán ya está pagado (régimen general o REBU): ni ITP ni IVA.
  */
@@ -56,11 +55,10 @@ final class ItpIva
     private static function iva(array $n, array $tablas, array $ctx): array
     {
         $iva = $tablas['iva'];
-        $canarias = $tablas['ccaa'][$n['ccaa']]['regimen'] === 'canarias';
         $tipo = $ctx['tipo_indirecto'];
         $base = $ctx['precio_neto'];
         $importe = Dinero::redondear($base * $tipo / 100);
-        $nombre = $canarias ? 'IGIC (Canarias)' : 'IVA español (modelo 309)';
+        $nombre = 'IVA español (modelo 309)';
         $origen = $n['vendedor'] === 'profesional' && $n['iva_deducible']
             ? 'precio del anuncio sin el ' . Partida::num((float) $iva['iva_alemania']['valor']) . ' % de IVA alemán'
             : 'precio del anuncio';
@@ -74,12 +72,6 @@ final class ItpIva
                 'iva_nuevo_sin_desglose',
                 'El anuncio no indica que el IVA alemán se pueda desglosar. Se ha tomado el precio del anuncio como base: '
                 . 'si la factura sale sin IVA alemán, ajusta el precio.'
-            );
-        }
-        if ($canarias) {
-            $avisos[] = Partida::aviso(
-                'canarias_regimen',
-                'Canarias tiene un régimen de importación propio (IGIC, arbitrio AIEM y trámite aduanero). El importe es orientativo.'
             );
         }
         return [

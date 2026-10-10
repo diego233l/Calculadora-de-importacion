@@ -41,9 +41,9 @@ prueba('V3. La fecha de matriculación no puede ser posterior a la del cálculo'
     Afirmar::verdadero($r['derivados']['nuevo']);
 });
 
-prueba('V4. Ceuta y Melilla no están soportadas y la CCAA indicada debe coincidir con el municipio', function (): void {
+prueba('V4. Una comunidad no soportada (Ceuta) se rechaza por su nombre y la CCAA indicada debe coincidir con el municipio', function (): void {
     $e = Afirmar::lanza(EntradaInvalida::class, fn() => Calculadora::calcular(entradaBase(['municipio' => '51900']), tablasPrueba()));
-    Afirmar::contiene('Ceuta y Melilla', $e->getMessage());
+    Afirmar::contiene('Ceuta no está soportada', $e->getMessage());
     $e = Afirmar::lanza(EntradaInvalida::class, fn() => Calculadora::calcular(entradaBase(['ccaa' => 'CT']), tablasPrueba()));
     Afirmar::contiene('no coincide', $e->getMessage());
     $r = Calculadora::calcular(entradaBase(['ccaa' => 'MD']), tablasPrueba());

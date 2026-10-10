@@ -176,25 +176,6 @@ prueba('8. Usado de profesional con "MwSt. ausweisbar": no se paga ITP ni IVA y 
     Afirmar::verdadero(in_array('iva_no_recuperable', codigosAviso($r), true));
 });
 
-prueba('9. Canarias: IEDMT con tipos canarios, IGIC en la minoración, ITP canario', function (): void {
-    // Antigüedad 4 años -> 50 %. Valor venal: 22.600 x 50 % = 11.300.
-    // IEDMT Canarias: 170 g/km -> 8 %. Base = 11.300 / (1 + (5 IGIC + 8)/100) = 11.300 / 1,13 = 10.000. Cuota = 800.
-    // ITP Canarias 5 %: 565. IVTM: municipio 35900 sin coeficiente -> 1,0: 70 -> 17,50.
-    // Transporte: 80xxx (50°N) a 28°N = 22° -> 3.057,8605 km x 7/100 x 1,50 = 321,08.
-    // Total: 12.000 + 800 + 565 + 17,50 + 500 + 321,08 = 14.203,58.
-    $r = Calculadora::calcular(entradaBase([
-        'municipio' => '35900', 'precio' => 12000, 'fila_boe' => ['precio' => 22600],
-    ]), tablasPrueba());
-    Afirmar::igual('CN', $r['derivados']['ccaa']);
-    Afirmar::euros(10000, partida($r, 'iedmt')['base']);
-    Afirmar::euros(800, partida($r, 'iedmt')['importe']);
-    Afirmar::igual(8.0, partida($r, 'iedmt')['tipo']);
-    Afirmar::euros(565, partida($r, 'itp_iva')['importe']);
-    Afirmar::euros(17.5, partida($r, 'ivtm')['importe']);
-    Afirmar::euros(321.08, partida($r, 'transporte')['importe']);
-    Afirmar::euros(14203.58, $r['total']);
-});
-
 prueba('10. ITP de una comunidad con tipos por caballos fiscales (Comunitat Valenciana)', function (): void {
     // Valor venal 13.000. CVF >= 15 -> 10 %; si no, 8 % general.
     // 2.500 cm³ y 6 cilindros -> CVF 17,91 -> 10 % -> 1.300. 1.500 cm³ y 4 cilindros -> CVF 11,20 -> 8 % -> 1.040.

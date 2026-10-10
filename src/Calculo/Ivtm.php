@@ -78,13 +78,6 @@ final class Ivtm
             );
         }
 
-        if ($tablas['ccaa'][$n['ccaa']]['regimen'] === 'foral') {
-            $avisos[] = Partida::aviso(
-                'ivtm_foral',
-                'En País Vasco y Navarra el IVTM tiene tarifas forales propias: el cuadro estatal es solo orientativo.'
-            );
-        }
-
         $trimestres = Fechas::trimestresRestantes($n['fecha_calculo']);
         $primerAnio = Dinero::redondear($anual * $trimestres / 4);
 

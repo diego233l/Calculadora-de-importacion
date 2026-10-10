@@ -9,10 +9,6 @@
       "nombre": "Barcelona",
       "ccaa": "CT"
     },
-    "35": {
-      "nombre": "Las Palmas",
-      "ccaa": "CN"
-    },
     "41": {
       "nombre": "Sevilla",
       "ccaa": "AN"
@@ -56,12 +52,6 @@
       "08900",
       "Barcelona de prueba",
       41.0,
-      -3.0
-    ],
-    [
-      "35900",
-      "Las Palmas de prueba",
-      28.0,
       -3.0
     ],
     [

@@ -107,7 +107,7 @@ final class Entrada
             } elseif (isset($e['ccaa']) && $e['ccaa'] !== $ccaa) {
                 $err[] = 'La comunidad autónoma indicada no coincide con la del municipio.';
             } elseif (!$tablas['ccaa'][$ccaa]['soportada']) {
-                $err[] = 'Ceuta y Melilla no están soportadas todavía: su régimen fiscal es distinto.';
+                $err[] = $tablas['ccaa'][$ccaa]['nombre'] . ' no está soportada: su régimen fiscal es distinto del común.';
             }
         }
 

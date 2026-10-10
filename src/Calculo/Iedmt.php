@@ -7,7 +7,7 @@ namespace CalculadoraImportacion\Calculo;
 /**
  * Impuesto Especial sobre Determinados Medios de Transporte (modelo 576).
  *
- * - Tipo: según las emisiones oficiales de CO2 (WLTP) y el régimen (península y Baleares, o Canarias).
+ * - Tipo: según las emisiones oficiales de CO2 (WLTP), con el tipo propio de la comunidad si lo aprobó.
  * - Base de un coche "nuevo": el precio sin IVA alemán.
  * - Base de un coche usado: el valor venal del BOE, minorado por la imposición indirecta que ya llevaba
  *   incorporada cuando estuvo matriculado en el extranjero (regla segunda de la Orden):
@@ -96,7 +96,7 @@ final class Iedmt
         $descripcionCo2 = $n['combustible'] === 'electrico' ? 'Eléctrico (0 g/km)' : Partida::num($co2) . ' g/km de CO2';
         $origenTipo = $tipoCcaa !== null
             ? 'tipo de tu comunidad autónoma; el estatal es ' . Partida::num($tipoEstatal) . ' %'
-            : ($regimen === 'canarias' ? 'Canarias' : 'península y Baleares');
+            : 'península y Baleares';
         $explicacion = sprintf('%s. %s Tipo %s %% (%s). %s x %s %% = %s.',
             $descripcionCo2, $explicacionBase, Partida::num($tipo), $origenTipo,
             Partida::eur($bi), Partida::num($tipo), Partida::eur($importe));

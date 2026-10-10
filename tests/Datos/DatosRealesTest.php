@@ -209,7 +209,6 @@ prueba('D10. Datos oficiales verificados: tipos autonómicos del IEDMT (AEAT) y 
     Afirmar::igual(16.0, $tipo('08019'), 'Barcelona');
     Afirmar::igual(14.75, $tipo('28079'), 'Madrid');
     Afirmar::igual(14.75, $tipo('41091'), 'Sevilla');
-    Afirmar::igual(13.75, $tipo('35016'), 'Las Palmas: tipo canario');
     $tasa = array_values(array_filter($t['costes_fijos']['partidas'], fn($p) => $p['clave'] === 'tasa_dgt'))[0];
     Afirmar::igual(99.77, $tasa['importe']);
     Afirmar::falso($tasa['estimacion']);
@@ -262,6 +261,28 @@ prueba('D11. IVTM real de Madrid (cuotas del Ayuntamiento 2026) y Salamanca (coe
     Afirmar::euros(44.81, partida($r, 'ivtm')['importe']);   // 89,61 x 2,0 = 179,22 al año; 44,805 en octubre -> 44,81
     Afirmar::verdadero(in_array('ivtm_bonificacion', codigosAviso($r), true));
     Afirmar::falso(in_array('ivtm_bonificacion_aplicada', codigosAviso($r), true));
+});
+
+prueba('D13. Canarias, Navarra, País Vasco, Ceuta y Melilla quedan fuera del alcance y se rechazan con un mensaje claro', function (): void {
+    $t = Tablas::cargar(dataDir(), 2026);
+    $casos = ['35016' => 'Canarias', '38038' => 'Canarias', '31201' => 'Navarra', '48020' => 'País Vasco', '01059' => 'País Vasco', '20069' => 'País Vasco', '51001' => 'Ceuta', '52001' => 'Melilla'];
+    foreach ($casos as $ine => $nombre) {
+        $e = Afirmar::lanza(\CalculadoraImportacion\Calculo\EntradaInvalida::class, fn() => Calculadora::calcular(entradaReal(['municipio' => (string) $ine]), $t), $nombre);
+        Afirmar::contiene('no está soportada', $e->getMessage(), $nombre);
+    }
+    // Y ninguna comunidad soportada necesita Canarias ni el régimen foral
+    foreach ($t['ccaa'] as $codigo => $c) {
+        if ($c['soportada']) {
+            Afirmar::igual('comun', $c['regimen'], $codigo);
+        }
+    }
+});
+
+prueba('D14. IVA alemán verificado (19 %, UStG § 12)', function (): void {
+    $iva = Tablas::cargar(dataDir(), 2026)['iva'];
+    Afirmar::igual(19.0, $iva['iva_alemania']['valor']);
+    Afirmar::falso($iva['iva_alemania']['verificar']);
+    Afirmar::falso(isset($iva['igic']), 'el IGIC ya no forma parte del alcance');
 });
 
 prueba('D12. ITP real: Madrid y Castilla y León (Salamanca) verificados, más Andalucía, Castilla-La Mancha y La Rioja', function (): void {

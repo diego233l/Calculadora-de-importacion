@@ -3,26 +3,121 @@
   "fuente": "Estatutos de Autonomía y Ley 38/1992 (ámbito territorial del IEDMT, art. 65)",
   "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1992-28741",
   "verificar": false,
-  "descripcion": "Comunidades y ciudades autónomas con el régimen fiscal que usa el motor. regimen_iedmt selecciona la tabla de tipos de iedmt.json; soportada=false excluye el territorio del cálculo.",
+  "descripcion": "Comunidades y ciudades autónomas. soportada=false las excluye del cálculo: tienen un régimen fiscal distinto del común (Canarias: IGIC, AIEM y trámite aduanero; Navarra y País Vasco: haciendas forales; Ceuta y Melilla: IPSI) y quedan fuera del alcance del proyecto.",
   "ccaa": {
-    "AN": {"nombre": "Andalucía", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "AR": {"nombre": "Aragón", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "AS": {"nombre": "Principado de Asturias", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "IB": {"nombre": "Illes Balears", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "CN": {"nombre": "Canarias", "regimen": "canarias", "regimen_iedmt": "canarias", "soportada": true},
-    "CB": {"nombre": "Cantabria", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "CL": {"nombre": "Castilla y León", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "CM": {"nombre": "Castilla-La Mancha", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "CT": {"nombre": "Cataluña", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "VC": {"nombre": "Comunitat Valenciana", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "EX": {"nombre": "Extremadura", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "GA": {"nombre": "Galicia", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "MD": {"nombre": "Comunidad de Madrid", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "MC": {"nombre": "Región de Murcia", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "NC": {"nombre": "Comunidad Foral de Navarra", "regimen": "foral", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "PV": {"nombre": "País Vasco", "regimen": "foral", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "RI": {"nombre": "La Rioja", "regimen": "comun", "regimen_iedmt": "peninsula_baleares", "soportada": true},
-    "CE": {"nombre": "Ceuta", "regimen": "ceuta_melilla", "regimen_iedmt": null, "soportada": false},
-    "ML": {"nombre": "Melilla", "regimen": "ceuta_melilla", "regimen_iedmt": null, "soportada": false}
+    "AN": {
+      "nombre": "Andalucía",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "AR": {
+      "nombre": "Aragón",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "AS": {
+      "nombre": "Principado de Asturias",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "IB": {
+      "nombre": "Illes Balears",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "CN": {
+      "nombre": "Canarias",
+      "regimen": "canarias",
+      "regimen_iedmt": null,
+      "soportada": false
+    },
+    "CB": {
+      "nombre": "Cantabria",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "CL": {
+      "nombre": "Castilla y León",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "CM": {
+      "nombre": "Castilla-La Mancha",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "CT": {
+      "nombre": "Cataluña",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "VC": {
+      "nombre": "Comunitat Valenciana",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "EX": {
+      "nombre": "Extremadura",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "GA": {
+      "nombre": "Galicia",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "MD": {
+      "nombre": "Comunidad de Madrid",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "MC": {
+      "nombre": "Región de Murcia",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "NC": {
+      "nombre": "Comunidad Foral de Navarra",
+      "regimen": "foral",
+      "regimen_iedmt": null,
+      "soportada": false
+    },
+    "PV": {
+      "nombre": "País Vasco",
+      "regimen": "foral",
+      "regimen_iedmt": null,
+      "soportada": false
+    },
+    "RI": {
+      "nombre": "La Rioja",
+      "regimen": "comun",
+      "regimen_iedmt": "peninsula_baleares",
+      "soportada": true
+    },
+    "CE": {
+      "nombre": "Ceuta",
+      "regimen": "ceuta_melilla",
+      "regimen_iedmt": null,
+      "soportada": false
+    },
+    "ML": {
+      "nombre": "Melilla",
+      "regimen": "ceuta_melilla",
+      "regimen_iedmt": null,
+      "soportada": false
+    }
   }
 }

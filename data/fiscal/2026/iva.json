@@ -12,16 +12,11 @@
     "fuente": "Ley 37/1992, art. 13 (consolidado)"
   },
   "modelo": "309",
-  "igic": {
-    "valor": 7.0,
-    "fuente": "Ley 20/1991, REF de Canarias: tipo general del IGIC",
-    "verificar": true,
-    "verificar_motivo": "Pendiente de contrastar en la Ley 20/1991 (art. 51) y en la Ley de presupuestos canaria vigente."
-  },
   "iva_alemania": {
     "valor": 19.0,
-    "fuente": "UStG alemana, § 12 Abs. 1 (tipo general del 19 %)",
-    "verificar": true,
-    "verificar_motivo": "No es norma española; contrastar en gesetze-im-internet.de/ustg_1980/__12.html."
+    "verificar": false,
+    "fuente": "UStG alemana, § 12 Abs. 1 (tipo general del 19 %); § 6a Abs. 1 Nr. 2 c (entrega exenta de un vehículo nuevo a cualquier adquirente de otro Estado miembro); § 2a (el particular que vende un vehículo nuevo a otro Estado miembro actúa como empresario); § 25a (régimen de bienes usados de los revendedores)",
+    "url": "https://www.gesetze-im-internet.de/ustg_1980/__12.html",
+    "verificado": "Contrastado con el texto de gesetze-im-internet.de el 10/10/2026."
   }
 }

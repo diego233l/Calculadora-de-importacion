@@ -21,8 +21,7 @@ final class Calculadora
     public static function calcular(array $entrada, array $tablas): array
     {
         $n = Entrada::normalizar($entrada, $tablas);
-        $regimenCanarias = $tablas['ccaa'][$n['ccaa']]['regimen'] === 'canarias';
-        $tipoIndirecto = (float) ($regimenCanarias ? $tablas['iva']['igic']['valor'] : $tablas['iva']['tipo_iva_es']);
+        $tipoIndirecto = (float) $tablas['iva']['tipo_iva_es'];
 
         $clasif = ItpIva::clasificar($n, $tablas);
         $precioNeto = ItpIva::precioNeto($n, $tablas, $clasif['nuevo']);
