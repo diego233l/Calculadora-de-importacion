@@ -1,0 +1,434 @@
+<?php
+
+declare(strict_types=1);
+
+namespace CalculadoraImportacion\Web;
+
+use CalculadoraImportacion\Calculo\Calculadora;
+use CalculadoraImportacion\Calculo\EntradaInvalida;
+use CalculadoraImportacion\Datos\Tablas;
+
+require_once __DIR__ . '/ayudas.php';
+
+/**
+ * La aplicación web: recibe una Peticion, devuelve una Respuesta. No toca variables globales ni emite nada,
+ * así que los tests la llaman directamente. El código se lee del repositorio en cada petición.
+ */
+final class App
+{
+    private const GUIAS = [
+        'importar-coche-de-alemania' => ['Importar un coche desde Alemania: paso a paso', 'guia_importar'],
+        'impuesto-de-matriculacion' => ['El impuesto de matriculación (IEDMT)', 'guia_iedmt'],
+        'itp' => ['El ITP al comprar un coche a un particular', 'guia_itp'],
+    ];
+    private const DESCRIPCIONES_GUIAS = [
+        'importar-coche-de-alemania' => 'Qué comprobar antes de comprar, qué papeles pedir y qué impuestos y trámites hay en España al importar un coche desde Alemania.',
+        'impuesto-de-matriculacion' => 'Cómo se calcula el impuesto de matriculación (IEDMT): tipos por emisiones de CO₂, valor del BOE, depreciación y descuento para coches ya matriculados fuera.',
+        'itp' => 'Cuándo se paga el ITP al comprar un coche usado a un particular, sobre qué valor y a qué tipo según la comunidad autónoma.',
+    ];
+
+    private ?array $tablas = null;
+    private ?Almacen $almacen = null;
+    /** @var \Closure(): string */
+    private \Closure $hoy;
+
+    /** @param (\Closure(): string)|null $hoy devuelve la fecha de hoy como AAAA-MM-DD (los tests la fijan) */
+    public function __construct(private readonly string $dirVar, ?\Closure $hoy = null)
+    {
+        $this->hoy = $hoy ?? static function (): string {
+            return (new \DateTimeImmutable('now', new \DateTimeZone(Config::ZONA_HORARIA)))->format('Y-m-d');
+        };
+    }
+
+    public function manejar(Peticion $p): Respuesta
+    {
+        try {
+            $respuesta = $this->enrutar($p);
+        } catch (\RuntimeException $e) {
+            Registro::escribir($this->dirVar, 'error_almacen', $e->getMessage());
+            $respuesta = $this->error(503, 'Servicio no disponible', 'No podemos guardar datos ahora mismo. Vuelve a intentarlo en unos minutos.');
+        } catch (\Throwable $e) {
+            Registro::escribir($this->dirVar, 'error_interno', get_class($e) . ': ' . $e->getMessage() . ' en ' . basename($e->getFile()) . ':' . $e->getLine());
+            $respuesta = $this->error(500, 'Algo ha fallado', 'Ha ocurrido un error inesperado. Si se repite, avísanos.');
+        }
+        return $this->conCabeceras($respuesta);
+    }
+
+    // ------------------------------------------------------------------ rutas
+
+    private function enrutar(Peticion $p): Respuesta
+    {
+        $metodo = $p->metodo === 'HEAD' ? 'GET' : $p->metodo;
+        $ruta = $p->ruta;
+        if (strlen($ruta) > 200) {
+            return $this->error(404, 'Página no encontrada', 'No existe esa página.');
+        }
+        if ($p->longitudCuerpo > Config::MAX_CUERPO) {
+            return $this->error(413, 'Formulario demasiado grande', 'Lo que has enviado es demasiado grande.');
+        }
+
+        $ids = '([a-f0-9]{12})';
+        $rutas = [
+            ['GET', '#^/$#', 'inicio'],
+            ['GET', '#^/datos$#', 'datosGet'],
+            ['POST', '#^/datos$#', 'datosPost'],
+            ['POST', '#^/calcular$#', 'calcular'],
+            ['GET', '#^/c/' . $ids . '$#', 'resultado'],
+            ['GET', '#^/c/' . $ids . '/editar$#', 'editar'],
+            ['POST', '#^/c/' . $ids . '/costes$#', 'ajustar'],
+            ['GET', '#^/comparar$#', 'comparar'],
+            ['GET', '#^/historial$#', 'historial'],
+            ['GET', '#^/api/municipios$#', 'apiMunicipios'],
+            ['GET', '#^/guias$#', 'guias'],
+            ['GET', '#^/guias/([a-z0-9-]{1,60})$#', 'guia'],
+            ['GET', '#^/aviso-legal$#', 'avisoLegal'],
+            ['GET', '#^/privacidad$#', 'privacidad'],
+            ['GET', '#^/salud$#', 'salud'],
+        ];
+        $rutaConocida = false;
+        foreach ($rutas as [$m, $patron, $accion]) {
+            if (preg_match($patron, $ruta, $coincidencias)) {
+                $rutaConocida = true;
+                if ($m === $metodo) {
+                    array_shift($coincidencias);
+                    return $this->$accion($p, ...$coincidencias);
+                }
+            }
+        }
+        if ($rutaConocida) {
+            return $this->error(405, 'Método no permitido', 'Esa página no admite esta operación.')->conCabecera('Allow', 'GET, POST');
+        }
+        return $this->error(404, 'Página no encontrada', 'No existe esa página. Puede que el enlace esté mal copiado.');
+    }
+
+    // ------------------------------------------------------------------ páginas
+
+    private function inicio(Peticion $p): Respuesta
+    {
+        $r = new Respuesta();
+        $csrf = Csrf::emitir($p, $r, $this->almacen()->secreto());
+        $r->cuerpo = Vista::pagina('inicio', [
+            'csrf' => $csrf, 'valores' => ['enlace' => '', 'municipio' => '', 'municipio_texto' => ''],
+            'errores' => [], 'candidatos' => [],
+        ], [
+            'titulo' => 'Calculadora de importación de coches de mobile.de a España',
+            'descripcion' => 'Calcula el coste real de importar a España un coche de mobile.de: impuesto de matriculación, ITP o IVA, IVTM, tasas, gestoría y transporte, con la fuente de cada cifra.',
+            'ruta' => '/', 'activa' => 'inicio',
+        ]);
+        $r->cabeceras['Content-Type'] = 'text/html; charset=utf-8';
+        return $r->conCabecera('Cache-Control', 'no-cache');
+    }
+
+    private function datosGet(Peticion $p): Respuesta
+    {
+        return Respuesta::redirigir('/');
+    }
+
+    /** Primer paso: enlace y municipio. Con ellos se muestra el formulario de datos del coche. */
+    private function datosPost(Peticion $p): Respuesta
+    {
+        $almacen = $this->almacen();
+        if (!Csrf::validar($p, $almacen->secreto())) {
+            return $this->errorCsrf();
+        }
+        $tablas = $this->tablas();
+        $enlace = Peticion::texto($p->post, 'enlace', 2100);
+        $errores = [];
+        if ($enlace !== '') {
+            $e = \CalculadoraImportacion\Anuncio\Enlace::validar($enlace);
+            if (!$e['ok']) {
+                $errores['enlace'] = $e['error'];
+            }
+        }
+        $m = Municipios::resolver($tablas, Peticion::texto($p->post, 'municipio', 5), Peticion::texto($p->post, 'municipio_texto', 80));
+        if ($m['ine'] === null) {
+            $errores['municipio'] = (string) $m['error'];
+        }
+        $valores = [
+            'enlace' => $enlace, 'municipio' => (string) $m['ine'],
+            'municipio_texto' => $m['ine'] !== null ? Municipios::etiqueta($tablas, $m['ine']) : Peticion::texto($p->post, 'municipio_texto', 80),
+        ];
+        $r = new Respuesta();
+        $csrf = Csrf::emitir($p, $r, $almacen->secreto());
+        if ($errores) {
+            $r->estado = 422;
+            $r->cuerpo = Vista::pagina('inicio', ['csrf' => $csrf, 'valores' => $valores, 'errores' => $errores, 'candidatos' => $m['candidatos']], [
+                'titulo' => 'Revisa los datos – Calculadora de importación', 'ruta' => '/', 'robots' => 'noindex', 'activa' => 'inicio',
+            ]);
+        } else {
+            $v = array_fill_keys(Formulario::CAMPOS, '');
+            $v = array_merge($v, $valores);
+            $r->cuerpo = $this->paginaDatos($csrf, $v, [], [], $tablas);
+        }
+        $r->cabeceras['Content-Type'] = 'text/html; charset=utf-8';
+        return $r->conCabecera('Cache-Control', 'no-store');
+    }
+
+    private function calcular(Peticion $p): Respuesta
+    {
+        $almacen = $this->almacen();
+        if (!Csrf::validar($p, $almacen->secreto())) {
+            return $this->errorCsrf();
+        }
+        $tablas = $this->tablas();
+        $f = Formulario::leerDatos($p->post, $tablas, ($this->hoy)());
+        if ($f['errores']) {
+            $r = new Respuesta(422);
+            $csrf = Csrf::emitir($p, $r, $almacen->secreto());
+            $r->cuerpo = $this->paginaDatos($csrf, $f['valores'], $f['errores'], $f['candidatos'], $tablas);
+            $r->cabeceras['Content-Type'] = 'text/html; charset=utf-8';
+            return $r->conCabecera('Cache-Control', 'no-store');
+        }
+        return $this->guardarYRedirigir($p, $f['entrada'], $tablas);
+    }
+
+    private function resultado(Peticion $p, string $id): Respuesta
+    {
+        $calculo = $this->almacen()->leerCalculo($id);
+        if ($calculo === null) {
+            return $this->error(404, 'Cálculo no encontrado', 'Ese cálculo no existe o ha caducado. Los cálculos se conservan ' . Config::DIAS_CONSERVACION . ' días.');
+        }
+        return $this->paginaResultado($p, $calculo, [], []);
+    }
+
+    private function editar(Peticion $p, string $id): Respuesta
+    {
+        $almacen = $this->almacen();
+        $calculo = $almacen->leerCalculo($id);
+        if ($calculo === null) {
+            return $this->error(404, 'Cálculo no encontrado', 'Ese cálculo no existe o ha caducado.');
+        }
+        $tablas = $this->tablas();
+        $r = new Respuesta();
+        $csrf = Csrf::emitir($p, $r, $almacen->secreto());
+        $r->cuerpo = $this->paginaDatos($csrf, Formulario::valoresDesdeEntrada($calculo['entrada'], $tablas), [], [], $tablas, $id);
+        $r->cabeceras['Content-Type'] = 'text/html; charset=utf-8';
+        return $r->conCabecera('Cache-Control', 'no-store');
+    }
+
+    private function ajustar(Peticion $p, string $id): Respuesta
+    {
+        $almacen = $this->almacen();
+        if (!Csrf::validar($p, $almacen->secreto())) {
+            return $this->errorCsrf();
+        }
+        $calculo = $almacen->leerCalculo($id);
+        if ($calculo === null) {
+            return $this->error(404, 'Cálculo no encontrado', 'Ese cálculo no existe o ha caducado.');
+        }
+        $a = Formulario::leerAjustes($p->post, $calculo['entrada']);
+        if ($a['errores']) {
+            return $this->paginaResultado($p, $calculo, $a['errores'], $a['valores'], 422);
+        }
+        return $this->guardarYRedirigir($p, $a['entrada'], $this->tablas());
+    }
+
+    private function comparar(Peticion $p): Respuesta
+    {
+        // ?c=id1,id2,id3 (PHP solo conserva el último valor de ?c=a&c=b, así que se usa una lista con comas)
+        $ids = $p->consulta['c'] ?? '';
+        $ids = is_array($ids) ? $ids : explode(',', mb_substr((string) $ids, 0, 80));
+        $calculos = [];
+        foreach (array_slice($ids, 0, 3) as $id) {
+            if (is_string($id) && ($c = $this->almacen()->leerCalculo($id)) !== null) {
+                $calculos[] = $c;
+            }
+        }
+        $r = Respuesta::html(Vista::pagina('comparar', ['calculos' => $calculos, 'pedidos' => count($ids)], [
+            'titulo' => 'Comparar coches – Calculadora de importación', 'ruta' => '/comparar', 'robots' => 'noindex', 'activa' => 'historial',
+        ]));
+        return $r->conCabecera('Cache-Control', 'no-store');
+    }
+
+    private function historial(Peticion $p): Respuesta
+    {
+        return Respuesta::html(Vista::pagina('historial', [], [
+            'titulo' => 'Mi historial – Calculadora de importación', 'ruta' => '/historial', 'robots' => 'noindex', 'activa' => 'historial',
+        ]));
+    }
+
+    private function apiMunicipios(Peticion $p): Respuesta
+    {
+        $q = Peticion::texto($p->consulta, 'q', 60);
+        $res = $q === '' ? [] : Municipios::buscar($this->tablas(), $q, 8);
+        return Respuesta::json(['resultados' => $res])->conCabecera('Cache-Control', 'public, max-age=3600');
+    }
+
+    private function guias(Peticion $p): Respuesta
+    {
+        return Respuesta::html(Vista::pagina('guias', ['guias' => self::GUIAS], [
+            'titulo' => 'Guías para importar un coche – Calculadora de importación',
+            'descripcion' => 'Guías prácticas: importar un coche desde Alemania, impuesto de matriculación e ITP.',
+            'ruta' => '/guias', 'activa' => 'guias',
+        ]))->conCabecera('Cache-Control', 'public, max-age=900');
+    }
+
+    private function guia(Peticion $p, string $slug): Respuesta
+    {
+        if (!isset(self::GUIAS[$slug])) {
+            return $this->error(404, 'Guía no encontrada', 'No existe esa guía.');
+        }
+        [$titulo, $vista] = self::GUIAS[$slug];
+        return Respuesta::html(Vista::pagina($vista, ['guias' => self::GUIAS, 'slug' => $slug, 'titulo' => $titulo], [
+            'titulo' => $titulo . ' – Calculadora de importación', 'descripcion' => self::DESCRIPCIONES_GUIAS[$slug],
+            'ruta' => '/guias/' . $slug, 'activa' => 'guias',
+        ]))->conCabecera('Cache-Control', 'public, max-age=900');
+    }
+
+    private function avisoLegal(Peticion $p): Respuesta
+    {
+        return Respuesta::html(Vista::pagina('aviso_legal', ['sitio' => Config::sitio()], [
+            'titulo' => 'Aviso legal – Calculadora de importación', 'ruta' => '/aviso-legal',
+            'descripcion' => 'Titular del sitio, naturaleza orientativa de los cálculos y limitación de responsabilidad de la Calculadora de importación.',
+        ]))->conCabecera('Cache-Control', 'public, max-age=900');
+    }
+
+    private function privacidad(Peticion $p): Respuesta
+    {
+        return Respuesta::html(Vista::pagina('privacidad', ['sitio' => Config::sitio(), 'dias' => Config::DIAS_CONSERVACION], [
+            'titulo' => 'Política de privacidad – Calculadora de importación', 'ruta' => '/privacidad',
+            'descripcion' => 'Qué datos trata la Calculadora de importación, durante cuánto tiempo y cómo ejercer tus derechos. Sin cuentas ni cookies de seguimiento.',
+        ]))->conCabecera('Cache-Control', 'public, max-age=900');
+    }
+
+    private function salud(Peticion $p): Respuesta
+    {
+        return Respuesta::texto("ok\n")->conCabecera('Cache-Control', 'no-store');
+    }
+
+    // ------------------------------------------------------------------ piezas comunes
+
+    private function paginaDatos(string $csrf, array $valores, array $errores, array $candidatos, array $tablas, ?string $editando = null): string
+    {
+        return Vista::pagina('datos', [
+            'csrf' => $csrf, 'v' => $valores, 'errores' => $errores, 'candidatos' => $candidatos, 'editando' => $editando,
+            'combustibles' => self::COMBUSTIBLES,
+        ], [
+            'titulo' => ($errores ? 'Revisa los datos' : 'Datos del coche') . ' – Calculadora de importación',
+            'ruta' => '/datos', 'robots' => 'noindex', 'activa' => 'inicio',
+        ]);
+    }
+
+    public const COMBUSTIBLES = [
+        'gasolina' => 'Gasolina', 'diesel' => 'Diésel', 'hibrido' => 'Híbrido (HEV, no enchufable)',
+        'phev' => 'Híbrido enchufable (PHEV)', 'electrico' => 'Eléctrico', 'glp' => 'GLP (autogas)', 'gnc' => 'GNC (gas natural)',
+    ];
+
+    private function paginaResultado(Peticion $p, array $calculo, array $erroresAjuste, array $valoresAjuste, int $estado = 200): Respuesta
+    {
+        $almacen = $this->almacen();
+        $r = new Respuesta($estado);
+        $csrf = Csrf::emitir($p, $r, $almacen->secreto());
+        $res = $calculo['resultado'];
+        $entrada = $calculo['entrada'];
+        $tablas = $this->tablas();
+        $titulo = trim(($entrada['marca'] ?? '') . ' ' . ($entrada['modelo'] ?? '') . ' ' . ($entrada['version'] ?? ''));
+        $url = ($p->host !== '' ? ($p->https ? 'https://' : 'http://') . $p->host : '') . '/c/' . $calculo['id'];
+        $r->cuerpo = Vista::pagina('resultado', [
+            'id' => $calculo['id'], 'creado' => $calculo['creado'], 'entrada' => $entrada, 'res' => $res,
+            'titulo' => $titulo !== '' ? $titulo : 'Tu coche', 'url' => $url, 'csrf' => $csrf,
+            'resumen' => self::resumen($res), 'municipio' => Municipios::etiqueta($tablas, (string) ($entrada['municipio'] ?? '')),
+            'errores' => $erroresAjuste, 'ajuste' => $valoresAjuste,
+            'costesDefecto' => $tablas['costes_fijos']['partidas'], 'transporteDefecto' => $tablas['transporte'],
+            'resumenJson' => self::resumenParaHistorial($calculo, $titulo, $url),
+        ], [
+            'titulo' => 'Coste de importar ' . ($titulo !== '' ? $titulo : 'tu coche') . ' – Calculadora de importación',
+            'ruta' => '/c/' . $calculo['id'], 'robots' => 'noindex', 'activa' => 'inicio', 'clase' => 'pagina-resultado',
+        ]);
+        $r->cabeceras['Content-Type'] = 'text/html; charset=utf-8';
+        return $r->conCabecera('Cache-Control', 'private, no-cache');
+    }
+
+    /** Agrupa las partidas para el total, la barra y el texto de comparación. */
+    public static function resumen(array $res): array
+    {
+        $grupos = ['precio' => 0.0, 'impuestos' => 0.0, 'gestion' => 0.0, 'transporte' => 0.0];
+        foreach ($res['partidas'] as $p) {
+            if ($p['estado'] !== 'ok') {
+                continue;
+            }
+            $g = match (true) {
+                $p['clave'] === 'precio' => 'precio',
+                in_array($p['clave'], ['iedmt', 'itp_iva', 'ivtm'], true) => 'impuestos',
+                in_array($p['clave'], ['transporte', 'otros_gastos_viaje'], true) => 'transporte',
+                default => 'gestion',
+            };
+            $grupos[$g] += (float) $p['importe'];
+        }
+        $extra = $res['coste_sobre_precio'];
+        $porcentaje = $res['precio_anuncio'] > 0 ? round($extra / $res['precio_anuncio'] * 100, 1) : 0.0;
+        return ['grupos' => $grupos, 'extra' => $extra, 'porcentaje' => $porcentaje];
+    }
+
+    /** Datos mínimos que el navegador guarda en su historial (localStorage). */
+    private static function resumenParaHistorial(array $calculo, string $titulo, string $url): string
+    {
+        $res = $calculo['resultado'];
+        return (string) json_encode([
+            'id' => $calculo['id'],
+            'titulo' => $titulo !== '' ? $titulo : 'Coche sin nombre',
+            'total' => $res['total'],
+            'precio' => $res['precio_anuncio'],
+            'completo' => $res['completo'],
+            'fecha' => $res['meta']['calculado'] ?? '',
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    private function guardarYRedirigir(Peticion $p, array $entrada, array $tablas): Respuesta
+    {
+        $almacen = $this->almacen();
+        if (!$almacen->permitir('calc:' . $p->ip, Config::LIMITE_CALCULOS_POR_MINUTO)) {
+            Registro::escribir($this->dirVar, 'limite_calculos');
+            return $this->error(429, 'Demasiadas peticiones', 'Has hecho muchos cálculos seguidos. Espera un minuto y vuelve a intentarlo.')->conCabecera('Retry-After', '60');
+        }
+        try {
+            $resultado = Calculadora::calcular($entrada, $tablas);
+        } catch (EntradaInvalida $e) {
+            return $this->error(422, 'Datos no válidos', implode(' ', $e->errores));
+        }
+        $resultado['meta'] = ['calculado' => ($this->hoy)(), 'anio_tablas' => $tablas['anio']];
+        $id = $almacen->guardarCalculo($entrada, $resultado);
+        if (random_int(1, 100) === 1) {
+            $almacen->purgar(Config::DIAS_CONSERVACION);
+        }
+        return Respuesta::redirigir('/c/' . $id);
+    }
+
+    private function errorCsrf(): Respuesta
+    {
+        return $this->error(403, 'El formulario ha caducado', 'No hemos podido comprobar que el envío viene de esta página. Vuelve al inicio y rellénalo de nuevo (hace falta que tu navegador acepte la cookie técnica de seguridad).');
+    }
+
+    private function error(int $estado, string $titulo, string $mensaje): Respuesta
+    {
+        return Respuesta::html(Vista::pagina('error', ['estado' => $estado, 'titulo' => $titulo, 'mensaje' => $mensaje], [
+            'titulo' => $titulo . ' – Calculadora de importación', 'robots' => 'noindex',
+        ]), $estado)->conCabecera('Cache-Control', 'no-store');
+    }
+
+    private function tablas(): array
+    {
+        return $this->tablas ??= Tablas::cargar(Config::dirData(), (int) substr(($this->hoy)(), 0, 4));
+    }
+
+    private function almacen(): Almacen
+    {
+        return $this->almacen ??= new Almacen($this->dirVar);
+    }
+
+    private function conCabeceras(Respuesta $r): Respuesta
+    {
+        $csp = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; "
+            . "connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'; manifest-src 'self'";
+        $r->cabeceras += [
+            'Content-Security-Policy' => $csp,
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'DENY',
+            'Referrer-Policy' => 'no-referrer',
+            'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+            'Cross-Origin-Opener-Policy' => 'same-origin',
+            'Cross-Origin-Resource-Policy' => 'same-origin',
+        ];
+        return $r;
+    }
+}

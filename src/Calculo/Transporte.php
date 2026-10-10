@@ -19,7 +19,7 @@ final class Transporte
         $p = $n['transporte'];
         $modo = $p['modo'] ?? 'conduciendo';
         $verificar = Partida::pendiente($t);
-        $concepto = $modo === 'camion' ? 'Transporte en camión portavehículos (estimación)' : 'Viaje para recoger el coche (estimación)';
+        $concepto = $modo === 'camion' ? 'Transporte en camión portavehículos' : 'Viaje para recoger el coche';
         $fuente = $t['fuente'];
         $avisos = [];
 

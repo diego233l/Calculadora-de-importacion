@@ -4,16 +4,20 @@ Coste real de importar a España un coche de mobile.de: precio, impuesto de matr
 ITP o IVA, IVTM del municipio, tasas de la DGT, ITV, gestoría y transporte. Cada cifra muestra su
 fuente y su cálculo.
 
-> **Estado:** Fase 1 (motor de cálculo) terminada. Pendientes: Fase 2 (datos del BOE), 3 (lectura del
-> anuncio), 4 (página web) y 5 (instalación y documentación completa).
+> **Estado:** motor de cálculo (Fase 1) y página web (Fase 4) hechos. De momento el usuario escribe los datos del
+> coche y el precio medio del BOE a mano. Pendientes: Fase 2 (datos del BOE), 3 (lectura del anuncio) y
+> 5 (instalación y documentación completa).
 
 ## Estructura
 
 ```
-public/     (Fase 4)  única carpeta servida por nginx
+public/     única carpeta servida por nginx: index.php (controlador frontal) y assets/ (CSS, JS, icono)
 src/
   Calculo/  motor de cálculo: funciones puras, sin I/O, reciben las tablas como array
   Datos/    lector de las tablas de data/ (la única parte que toca el disco)
+  Anuncio/  validación de los enlaces de mobile.de (protección SSRF)
+  Web/      aplicación web: Peticion → App → Respuesta, CSRF, SQLite, formularios
+  Vistas/   plantillas PHP (todo lo que se imprime pasa por e())
 data/
   fiscal/<año>/   tipos y tablas versionados por año; cada valor con fuente y marca "verificar"
   plz_de.json     prefijo de código postal alemán -> coordenadas
@@ -21,6 +25,19 @@ data/
 scripts/    herramientas offline (no se ejecutan en producción)
 tests/      runner propio: php tests/run.php
 ```
+
+## La web, en local
+
+```
+CALCULADORA_VAR=/tmp/calculadora php -S 127.0.0.1:8082 -t public public/index.php
+```
+
+Los datos generados (SQLite con los cálculos compartidos, clave de seguridad y registro) van a
+`/var/lib/calculadora-importacion` (`Config::DIR_VAR_POR_DEFECTO`), o a la carpeta de la variable de entorno
+`CALCULADORA_VAR`. La aplicación nunca escribe en el repositorio. Los datos del titular del aviso legal y de
+la política de privacidad están en `data/sitio.json` y hay que rellenarlos antes de publicar.
+
+Sin dependencias ni compilación: HTML, CSS y JavaScript a mano; PHP 8.1+ con curl, dom, pdo_sqlite, mbstring y json.
 
 ## Uso del motor
 

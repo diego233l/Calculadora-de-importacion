@@ -1,0 +1,8 @@
+{
+  "descripcion": "Datos del titular del sitio para el aviso legal y la política de privacidad (LSSI y RGPD). Rellénalos antes de publicar la web: mientras estén vacíos, las páginas lo indican.",
+  "nombre_sitio": "Calculadora de importación",
+  "titular": "",
+  "nif": "",
+  "domicilio": "",
+  "email": ""
+}

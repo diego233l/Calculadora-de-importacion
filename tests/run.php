@@ -9,12 +9,16 @@ declare(strict_types=1);
 
 error_reporting(E_ALL);
 set_error_handler(static function (int $no, string $texto, string $fichero, int $linea): bool {
+    if (!(error_reporting() & $no)) {
+        return false;   // aviso silenciado con @: se respeta
+    }
     throw new \ErrorException($texto, 0, $no, $fichero, $linea);
 });
 
 require __DIR__ . '/../src/autoload.php';
 require __DIR__ . '/Prueba.php';
 require __DIR__ . '/ayuda.php';
+require __DIR__ . '/ayuda_web.php';
 
 $filtro = $argv[1] ?? null;
 

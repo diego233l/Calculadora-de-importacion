@@ -169,7 +169,7 @@ final class ItpIva
         $tipo = (float) $tipo;
         $importe = Dinero::redondear($base * $tipo / 100);
         $explicacion = sprintf(
-            'Compra a un particular: se paga ITP en tu comunidad (modelo 620) sobre el valor venal del BOE. %s x %s %% = %s.',
+            'Compra a un particular: se paga ITP en tu comunidad autónoma, con su modelo de autoliquidación, sobre el valor venal del BOE. %s x %s %% = %s.',
             Partida::eur($base), Partida::num($tipo), Partida::eur($importe)
         );
         return ['partidas' => [Partida::ok('itp_iva', $concepto, $importe, $base, $tipo, '%', $fuente, $explicacion, $verificar, $url)], 'avisos' => []];
