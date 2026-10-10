@@ -4,7 +4,7 @@ Coste real de importar a España un coche de mobile.de: precio, impuesto de matr
 ITV, gestoría y transporte. Se pega el enlace del anuncio (o el texto copiado de la página), se elige el municipio donde se va a matricular y sale el desglose,
 con la **fuente y el cálculo de cada cifra**. Solo web: sin cuentas, sin pagos, sin extensión del navegador, sin APIs externas.
 
-Instalación en una VM: [`deploy/INSTALL.md`](deploy/INSTALL.md) (comandos para copiar y pegar). Actualizar: `git -C /opt/apps/calculadora-importacion pull`.
+Instalación en una VM: `bash install.sh` (un script con las comprobaciones de seguridad; empieza con `--solo-comprobar`) o, a mano, [`deploy/INSTALL.md`](deploy/INSTALL.md). Actualizar: `git -C /opt/apps/calculadora-importacion pull`.
 
 ## Estado
 
@@ -68,6 +68,7 @@ data/
   mobile_de_selectores.json   pistas CSS para leer anuncios (sin validar con páginas reales)
   plz_de.json, municipios_es.json   coordenadas de códigos postales alemanes y municipios españoles
   sitio.json           datos del titular por defecto (vacíos); los reales van en /var/lib/…/sitio.json
+install.sh    instalador para la VM (comprueba, instala, deshace si falla y desinstala)
 deploy/       nginx, pool de PHP-FPM e INSTALL.md
 scripts/      herramientas OFFLINE (extraer el BOE, generar diccionarios y geografía, analizar un anuncio)
 tests/        runner propio sin dependencias: php tests/run.php

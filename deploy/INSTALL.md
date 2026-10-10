@@ -1,6 +1,6 @@
 # Instalar la Calculadora de importación en la VM
 
-Todo son comandos para **copiar y pegar** en la terminal de la VM, en orden. Esta guía solo **crea ficheros nuevos** de este proyecto
+Todo son comandos para **copiar y pegar** en la terminal de la VM, en orden (o, más corto, el script `install.sh` de la sección siguiente). Esta guía solo **crea ficheros nuevos** de este proyecto
 (`/opt/apps/calculadora-importacion`, `/var/lib/calculadora-importacion`, un sitio de nginx y un pool de PHP-FPM) y usa **`reload`, nunca `restart`**.
 No modifica, mueve ni borra nada de las otras webs ni la configuración global de nginx o PHP, y no instala ni actualiza paquetes.
 Si algún paso no sale como se describe, **para y cuéntamelo antes de seguir**.
@@ -11,6 +11,34 @@ Requisitos que ya debería tener la VM: nginx, PHP-FPM 8.1 o superior con las ex
 > permisos de `www-data`, las cabeceras, el bloqueo de rutas (`.git`, `.env`, `data/`, `src/`…), el tamaño máximo de cuerpo y que opcache recoge los cambios sin reiniciar nada.
 > En ese contenedor no hay systemd, así que `systemctl reload` no se ha podido ejecutar allí (se arrancaron nginx y php-fpm a mano), y tampoco se ha probado en tu VM
 > concreta: por eso el paso 0 es mirar antes de tocar.
+
+---
+
+## Forma rápida: el script `install.sh`
+
+Hace **los pasos 0 a 7 de esta guía** (con las mismas reglas de seguridad) y se puede repetir sin problema. Descárgalo, léelo si quieres, mira cómo está la máquina y, si todo va bien, instala:
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/diego233l/Calculadora-de-importacion/claude/elegant-goldberg-8i18f9/install.sh
+bash install.sh --solo-comprobar      # solo mira la máquina (inventario, puerto, extensiones de PHP, códigos HTTP de tus otras webs); no cambia nada
+bash install.sh                       # enseña qué va a crear, pregunta «¿Seguimos?» y lo instala
+```
+
+(La dirección lleva el nombre de la rama del repositorio; si algún día cambia la rama por defecto, se cambia ahí.) Te pedirá la contraseña de `sudo` y, al final, si quieres escribir los datos del titular.
+
+Qué garantiza el script:
+
+- **Para sin tocar nada** si falta nginx, git, curl, PHP-FPM ≥ 8.1 en marcha o alguna extensión (`curl`, `dom`, `pdo_sqlite`, `mbstring`, `json`), y **si el puerto 8082 está ocupado** (te dice qué programa lo usa; con `PUERTO=8083 bash install.sh` eliges otro).
+- **Solo crea** `/opt/apps/calculadora-importacion`, `/var/lib/calculadora-importacion`, un sitio de nginx y un pool de PHP-FPM. No modifica, mueve ni borra nada de las otras webs ni la configuración global, y **no instala paquetes**.
+- Hace `php-fpm -t` y `nginx -t` **antes** de cada `reload` (nunca `restart`). Si alguna prueba falla, retira lo que había añadido en esa ejecución y no recarga: tus otras webs siguen igual.
+- Apunta el **código HTTP de tus otras webs antes y después** (las saca de la configuración de nginx) y te avisa si alguno cambia.
+- Es repetible: si ya está instalado, actualiza el código con `git pull` y deja los ficheros iguales si no han cambiado.
+- Datos del titular sin preguntas: `TITULAR="…" NIF="…" DOMICILIO="…" EMAIL="…" bash install.sh --si`.
+- Quitarlo: `bash install.sh --desinstalar` (deja el código y los datos) o `bash install.sh --desinstalar --borrar-todo`.
+
+Se ha probado en un contenedor Ubuntu 24.04 con nginx 1.24, PHP-FPM 8.3 y otras dos webs de ejemplo: instalación completa como usuario con `sudo`, repetición, puerto ocupado (para sin crear nada), fallo de `nginx -t` provocado a propósito (retira lo añadido y no recarga), desinstalación y confirmación interactiva. Aun así, **el primer paso en tu VM sigue siendo `--solo-comprobar`**.
+
+Si prefieres hacerlo a mano, o el script se detiene y quieres entender por qué, los pasos están debajo.
 
 ---
 
