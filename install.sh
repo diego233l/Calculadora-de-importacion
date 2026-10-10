@@ -6,6 +6,7 @@
 #   bash install.sh                  # comprueba, enseña qué va a crear, pregunta y lo instala
 #   bash install.sh --solo-comprobar # solo mira cómo está la máquina; no cambia nada
 #   bash install.sh --si             # no pregunta (para repetir la instalación o automatizarla)
+#   bash install.sh --instalar-php   # si falta PHP-FPM o alguna extensión, permite instalarlos con apt SIN preguntar (solo paquetes nuevos)
 #   bash install.sh --desinstalar    # quita el sitio de nginx y el pool de PHP-FPM (y deja el código y los datos)
 #   bash install.sh --desinstalar --borrar-todo   # además borra /opt/apps/calculadora-importacion y /var/lib/calculadora-importacion
 #   PUERTO=8083 bash install.sh      # otro puerto distinto de 8082
@@ -17,7 +18,8 @@
 #   · Solo CREA ficheros nuevos de este proyecto: /opt/apps/calculadora-importacion, /var/lib/calculadora-importacion,
 #     un sitio de nginx y un pool de PHP-FPM. No modifica, mueve ni borra nada de las otras webs ni la configuración global.
 #   · Siempre `nginx -t` y `php-fpm -t` ANTES de recargar; recarga (`reload`), nunca reinicia.
-#   · No instala, actualiza ni quita paquetes (si falta algo, lo dice y para).
+#   · No instala, actualiza ni quita paquetes por su cuenta: si falta PHP-FPM o una extensión, enseña EXACTAMENTE qué paquetes
+#     NUEVOS haría falta instalar y solo los instala si tú lo confirmas (nunca actualiza ni quita nada ya instalado).
 #   · Apunta el código HTTP de tus otras webs antes y después y avisa si alguno ha cambiado.
 #   · Si algo falla antes de recargar, deshace lo que había creado en esta ejecución.
 #
@@ -32,6 +34,7 @@ readonly DIR_VAR="/var/lib/${NOMBRE}"
 readonly REPO_URL="${REPO_URL:-https://github.com/diego233l/Calculadora-de-importacion.git}"
 readonly RAMA="${RAMA:-}"                        # vacío = la rama por defecto del repositorio
 readonly PHP_MINIMO="8.1"
+ETC_PHP="${ETC_PHP:-/etc/php}"                  # (solo para pruebas del propio script)
 readonly EXTENSIONES=(curl dom pdo_sqlite mbstring json)
 readonly NGINX_SITIO="/etc/nginx/sites-available/${NOMBRE}"
 readonly NGINX_ENLACE="/etc/nginx/sites-enabled/${NOMBRE}"
@@ -41,14 +44,16 @@ PUERTO="${PUERTO:-8082}"
 MODO="instalar"
 PREGUNTAR=1
 BORRAR_TODO=0
+INSTALAR_PHP=0
 for arg in "$@"; do
     case "$arg" in
         --solo-comprobar) MODO="comprobar" ;;
         --desinstalar)    MODO="desinstalar" ;;
         --borrar-todo)    BORRAR_TODO=1 ;;
+        --instalar-php)   INSTALAR_PHP=1 ;;
         --si|--yes|-y)    PREGUNTAR=0 ;;
         --puerto=*)       PUERTO="${arg#--puerto=}" ;;
-        -h|--ayuda|--help) sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--ayuda|--help) sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "Opción desconocida: $arg (usa --ayuda)" >&2; exit 2 ;;
     esac
 done
@@ -154,7 +159,11 @@ deshacer() {
     rm -rf "$TMP"
 }
 trap deshacer EXIT
-trap 'fallo "Error inesperado en la línea $LINENO."' ERR
+error_inesperado() {              # un comando que falla dentro de $(...) o de un subproceso no es un error del script: solo el proceso principal
+    [[ "$BASHPID" == "$$" ]] || return 0
+    fallo "Error inesperado en la línea $1."
+}
+trap 'error_inesperado $LINENO' ERR
 
 # ------------------------------------------------------------------ códigos HTTP de las otras webs (antes y después)
 # Recorre las configuraciones de nginx (nginx -T) y para cada server con nombre normal pide «/» a 127.0.0.1 con su Host.
@@ -193,6 +202,134 @@ snapshot_webs() {
     mv "$salida.tmp" "$salida"
 }
 
+# ------------------------------------------------------------------ PHP-FPM: buscar, diagnosticar y (si tú quieres) instalar
+V_FPM_PARADO=""; PAQUETES_INSTALADOS=0
+buscar_fpm() {                    # pone V_FPM con la versión más alta EN MARCHA; V_FPM_PARADO si solo hay instaladas pero paradas
+    local v
+    V_FPM=""; V_FPM_PARADO=""
+    while read -r v; do
+        [[ -n "$v" ]] || continue
+        command -v "php-fpm${v}" >/dev/null 2>&1 || continue
+        if systemctl is-active --quiet "php${v}-fpm" 2>/dev/null || pgrep -x "php-fpm${v}" >/dev/null 2>&1; then
+            V_FPM="$v"
+            return 0
+        fi
+        [[ -n "$V_FPM_PARADO" ]] || V_FPM_PARADO="$v"
+    done < <(find "$ETC_PHP" -mindepth 2 -maxdepth 2 -name fpm -printf '%h\n' 2>/dev/null | sed 's#.*/##' | sort -rV)
+    return 1
+}
+
+diagnostico_php() {
+    local cli=""
+    if command -v php >/dev/null 2>&1; then cli="$(php -r 'echo PHP_VERSION;' 2>/dev/null || true)"; fi
+    info "Lo que hay de PHP en esta máquina:"
+    info "  · php (línea de comandos): ${cli:-no instalado}"
+    info "  · carpetas ${ETC_PHP}/<versión>/fpm: $(find "$ETC_PHP" -mindepth 2 -maxdepth 2 -name fpm -printf '%h\n' 2>/dev/null | sed 's#.*/##' | tr '\n' ' ')"
+    info "  · binarios php-fpm: $(compgen -c php-fpm 2>/dev/null | sort -u | tr '\n' ' ')"
+    info "  · servicios php*-fpm: $(systemctl list-unit-files 'php*-fpm.service' --no-legend 2>/dev/null | awk '{print $1 "(" $2 ")"}' | tr '\n' ' ')"
+    info "  · procesos php-fpm en marcha: $(pgrep -c php-fpm 2>/dev/null || true)"
+}
+
+# Extensión de PHP -> paquete de Debian/Ubuntu (json viene dentro de PHP 8)
+paquete_de_extension() {
+    case "$1" in
+        curl) echo curl ;; dom) echo xml ;; pdo_sqlite) echo sqlite3 ;; mbstring) echo mbstring ;;
+        *) echo "" ;;
+    esac
+}
+
+# Enseña qué paquetes NUEVOS se instalarían (simulación, no cambia nada) y, si se confirma, los instala.
+# Nunca actualiza ni quita nada: si la simulación lo exige, se detiene.
+ofrecer_instalar() {              # ofrecer_instalar "motivo" paquete…
+    local motivo="$1"; shift
+    local paquetes=("$@") sim nuevos quitar subir p politica
+    command -v apt-get >/dev/null 2>&1 || fallo "No encuentro apt-get: instala tú ${paquetes[*]}."
+    for p in "${paquetes[@]}"; do
+        politica="$(LC_ALL=C apt-cache policy "$p" 2>/dev/null || true)"          # en una variable: grep -q cerrando la tubería daría SIGPIPE con pipefail
+        grep -q 'Candidate: [^(]' <<< "$politica" \
+            || fallo "El paquete $p no está disponible en tus repositorios (quizá hace falta un «apt update» o un repositorio de PHP más nuevo). No sigo."
+    done
+    sim="$(LC_ALL=C apt-get -s install --no-install-recommends "${paquetes[@]}" 2>&1)" || { printf '%s\n' "$sim" | tail -8 | sed 's/^/    /'; fallo "apt no puede resolver la instalación de ${paquetes[*]}."; }
+    quitar="$(grep -c '^Remv ' <<< "$sim" || true)"
+    # «Inst paquete [versión-vieja] (nueva …)» es una ACTUALIZACIÓN; «Inst paquete (nueva … [arq])» es un paquete nuevo
+    subir="$(grep -cE '^Inst [^ ]+ \[' <<< "$sim" || true)"
+    nuevos="$(grep -E '^Inst ' <<< "$sim" | grep -vE '^Inst [^ ]+ \[' | awk '{print $2}' | tr '\n' ' ')"
+    echo "  $motivo"
+    info "Paquetes NUEVOS que se instalarían: ${nuevos:-ninguno}"
+    if [[ "${quitar:-0}" -gt 0 || "${subir:-0}" -gt 0 ]]; then
+        grep -E '^(Remv|Inst [^ ]+ \[)' <<< "$sim" | head -10 | sed 's/^/    /'
+        fallo "Instalarlos exigiría quitar ($quitar) o actualizar ($subir) paquetes que ya tienes. Eso lo decides tú, no este script: no sigo."
+    fi
+    info "No se actualiza ni se quita ningún paquete que ya tengas."
+    [[ "$MODO" != "comprobar" ]] || return 1             # en --solo-comprobar solo se enseña el plan
+    if [[ $INSTALAR_PHP -eq 0 ]]; then
+        [[ $PREGUNTAR -eq 1 && -t 0 ]] || fallo "Para que el script los instale sin preguntar, repite con --instalar-php. No he cambiado nada."
+        confirmar "  ¿Instalo esos paquetes con apt?" || fallo "Cancelado: no se ha instalado nada. Si prefieres hacerlo tú:  sudo apt install ${paquetes[*]}"
+    fi
+    # NEEDRESTART_SUSPEND: en Ubuntu, needrestart puede reiniciar OTROS servicios tras un apt; aquí se evita
+    LC_ALL=C DEBIAN_FRONTEND=noninteractive NEEDRESTART_SUSPEND=1 apt-get install -y --no-install-recommends \
+        -o Dpkg::Options::=--force-confold "${paquetes[@]}" 2>&1 | tail -n 5 | sed 's/^/    /'
+    [[ "${PIPESTATUS[0]}" -eq 0 ]] || fallo "apt ha fallado instalando ${paquetes[*]}. Mira el error y dímelo."
+    ok "Paquetes instalados"
+    PAQUETES_INSTALADOS=1
+    return 0
+}
+
+preparar_php() {
+    local e faltan modulos paquetes version_apt
+    if ! buscar_fpm; then
+        diagnostico_php
+        if [[ -n "$V_FPM_PARADO" ]]; then
+            fallo "Hay PHP-FPM $V_FPM_PARADO instalado pero PARADO. Arrancarlo es decisión tuya (¿por qué está parado?):  sudo systemctl start php${V_FPM_PARADO}-fpm  y repite."
+        fi
+        aviso "No hay ningún PHP-FPM instalado (el pool propio de esta web necesita uno)."
+        command -v apt-cache >/dev/null 2>&1 || fallo "No encuentro apt. Instala PHP-FPM $PHP_MINIMO o superior y las extensiones ${EXTENSIONES[*]}, y repite."
+        version_apt="$(LC_ALL=C apt-cache depends php-fpm 2>/dev/null | sed -n 's/^ *Depends: php\([0-9]\.[0-9]\)-fpm$/\1/p' | head -1)"
+        [[ -n "$version_apt" ]] || fallo "No sé qué versión de PHP trae tu sistema (apt-cache depends php-fpm no dice nada). Instala PHP-FPM tú y repite."
+        if [[ "$(printf '%s\n%s\n' "$PHP_MINIMO" "$version_apt" | sort -V | head -1)" != "$PHP_MINIMO" ]]; then
+            fallo "Los repositorios de tu sistema traen PHP $version_apt y hace falta $PHP_MINIMO o superior. Hay que añadir un repositorio de PHP (por ejemplo el de Ondřej Surý) y eso lo decides tú; dímelo y lo vemos."
+        fi
+        paquetes=("php${version_apt}-fpm")
+        for e in "${EXTENSIONES[@]}"; do
+            [[ -n "$(paquete_de_extension "$e")" ]] && paquetes+=("php${version_apt}-$(paquete_de_extension "$e")")
+        done
+        ofrecer_instalar "Se puede instalar PHP ${version_apt} con PHP-FPM y las extensiones necesarias (la versión que trae tu sistema)." "${paquetes[@]}" \
+            || fallo "Falta PHP-FPM. Con  bash install.sh  te ofrecerá instalarlo (enseñando antes los paquetes); o instálalo tú y repite."
+        buscar_fpm || {
+            systemctl start "php${version_apt}-fpm" 2>/dev/null || true       # servicio recién instalado por este script
+            buscar_fpm || fallo "He instalado PHP ${version_apt} pero su servicio no arranca. Mira:  systemctl status php${version_apt}-fpm"
+        }
+    fi
+    if [[ "$(printf '%s\n%s\n' "$PHP_MINIMO" "$V_FPM" | sort -V | head -1)" != "$PHP_MINIMO" ]]; then
+        fallo "PHP-FPM $V_FPM es demasiado antiguo: hace falta $PHP_MINIMO o superior."
+    fi
+    ok "PHP-FPM $V_FPM en marcha"
+    POOL="${ETC_PHP}/${V_FPM}/fpm/pool.d/${NOMBRE}.conf"
+
+    modulos="$("php-fpm${V_FPM}" -m 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+    faltan=()
+    for e in "${EXTENSIONES[@]}"; do
+        grep -qx "$e" <<< "$modulos" || faltan+=("$e")
+    done
+    if [[ ${#faltan[@]} -gt 0 ]]; then
+        aviso "A PHP-FPM $V_FPM le faltan extensiones: ${faltan[*]}"
+        paquetes=()
+        for e in "${faltan[@]}"; do
+            [[ -n "$(paquete_de_extension "$e")" ]] || fallo "Falta la extensión $e y no sé qué paquete la trae. Revisa tu PHP."
+            paquetes+=("php${V_FPM}-$(paquete_de_extension "$e")")
+        done
+        ofrecer_instalar "Se pueden instalar las extensiones que faltan." "${paquetes[@]}" \
+            || fallo "Faltan extensiones de PHP. Con  bash install.sh  te ofrecerá instalarlas; o instálalas tú y repite."
+        # Un PHP-FPM ya en marcha no ve las extensiones nuevas hasta recargar (reload, sin cortar peticiones)
+        recargar fpm || true
+        modulos="$("php-fpm${V_FPM}" -m 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+        for e in "${faltan[@]}"; do
+            grep -qx "$e" <<< "$modulos" || fallo "La extensión $e sigue sin aparecer en PHP-FPM $V_FPM tras instalarla."
+        done
+    fi
+    ok "Extensiones de PHP: ${EXTENSIONES[*]}"
+}
+
 # ------------------------------------------------------------------ 0. comprobaciones previas
 requisitos() {
     titulo "Comprobando la máquina (solo lectura)"
@@ -200,40 +337,19 @@ requisitos() {
         || fallo "No encuentro /etc/nginx/sites-available y sites-enabled. Este script es para Debian/Ubuntu; si tu nginx usa conf.d, dímelo y lo adaptamos."
     command -v nginx >/dev/null 2>&1 || fallo "No encuentro nginx."
     id www-data >/dev/null 2>&1 || fallo "No existe el usuario www-data."
-    command -v git >/dev/null 2>&1 || fallo "No encuentro git (y este script no instala paquetes). Instálalo tú: sudo apt install git."
-    command -v curl >/dev/null 2>&1 || fallo "No encuentro curl (y este script no instala paquetes)."
+    command -v git >/dev/null 2>&1 || fallo "No encuentro git (y este script no instala git). Instálalo tú: sudo apt install git."
+    command -v curl >/dev/null 2>&1 || fallo "No encuentro curl (y este script no instala curl). Instálalo tú: sudo apt install curl."
     ok "nginx, git y curl presentes; usuario www-data presente"
 
-    info "Sitios de nginx activos:     $(find /etc/nginx/sites-enabled -mindepth 1 -maxdepth 1 -printf '%f ' 2>/dev/null)"
+    info "Sitios de nginx activos:     $(find /etc/nginx/sites-enabled -mindepth 1 -maxdepth 1 -printf '%f ' 2>/dev/null || true)"
     info "En /opt/apps:                $(find /opt/apps -mindepth 1 -maxdepth 1 -printf '%f ' 2>/dev/null || true)"
-    info "Pools de PHP-FPM existentes: $(find /etc/php/*/fpm/pool.d -name '*.conf' -printf '%f ' 2>/dev/null)"
+    info "Pools de PHP-FPM existentes: $(find "$ETC_PHP" -path '*/fpm/pool.d/*.conf' -printf '%f ' 2>/dev/null || true)"
 
-    # PHP-FPM: la versión más alta que esté funcionando
-    local v
-    V_FPM=""
-    while read -r v; do
-        [[ -n "$v" ]] || continue
-        command -v "php-fpm${v}" >/dev/null 2>&1 || continue
-        if systemctl is-active --quiet "php${v}-fpm" 2>/dev/null || pgrep -x "php-fpm${v}" >/dev/null 2>&1; then V_FPM="$v"; break; fi
-    done < <(find /etc/php -mindepth 2 -maxdepth 2 -name fpm -printf '%h\n' 2>/dev/null | sed 's#.*/##' | sort -rV)
-    [[ -n "$V_FPM" ]] || fallo "No encuentro ningún PHP-FPM en marcha (busqué /etc/php/*/fpm y el servicio php<versión>-fpm). Si no está instalado, dímelo: instalar paquetes lo decides tú."
-    if [[ "$(printf '%s\n%s\n' "$PHP_MINIMO" "$V_FPM" | sort -V | head -1)" != "$PHP_MINIMO" ]]; then
-        fallo "PHP-FPM $V_FPM es demasiado antiguo: hace falta $PHP_MINIMO o superior."
-    fi
-    ok "PHP-FPM $V_FPM en marcha"
-    POOL="/etc/php/${V_FPM}/fpm/pool.d/${NOMBRE}.conf"
-
-    local modulos faltan=()
-    modulos="$("php-fpm${V_FPM}" -m 2>/dev/null | tr '[:upper:]' '[:lower:]')"
-    for e in "${EXTENSIONES[@]}"; do
-        grep -qx "$e" <<< "$modulos" || faltan+=("$e")
-    done
-    [[ ${#faltan[@]} -eq 0 ]] || fallo "A PHP-FPM $V_FPM le faltan extensiones: ${faltan[*]}. Instalarlas es decisión tuya (por ejemplo: sudo apt install php${V_FPM}-curl php${V_FPM}-xml php${V_FPM}-sqlite3 php${V_FPM}-mbstring)."
-    ok "Extensiones de PHP: ${EXTENSIONES[*]}"
+    preparar_php
 
     [[ "$PUERTO" =~ ^[0-9]+$ && "$PUERTO" -ge 1024 && "$PUERTO" -le 65535 ]] || fallo "Puerto no válido: $PUERTO (debe estar entre 1024 y 65535)."
     if puerto_en_uso "$PUERTO"; then
-        if [[ -L "$NGINX_ENLACE" ]] && quien_usa_puerto "$PUERTO" | grep -q nginx; then
+        if [[ -L "$NGINX_ENLACE" ]] && grep -q nginx <<< "$(quien_usa_puerto "$PUERTO")"; then
             ok "El puerto $PUERTO lo usa nuestro propio sitio de nginx (instalación previa): se actualizará"
         else
             quien_usa_puerto "$PUERTO" | sed 's/^/    /'
@@ -468,7 +584,10 @@ info "1. Clonar o actualizar el código en   ${DIR_APP}   (propietario: ${DUENO}
 info "2. Crear la carpeta de datos           ${DIR_VAR}   (www-data, 0750)"
 info "3. Añadir el pool de PHP-FPM ${V_FPM}        ${POOL}   (php-fpm -t y reload)"
 info "4. Añadir el sitio de nginx            ${NGINX_SITIO}  → puerto ${PUERTO}   (nginx -t y reload)"
-info "No se modifica ninguna otra web ni la configuración global; no se instalan paquetes."
+if [[ $PAQUETES_INSTALADOS -eq 1 ]]; then
+    info "(Los paquetes de PHP ya se han instalado en el paso anterior; de aquí en adelante no se instala nada más.)"
+fi
+info "No se modifica ninguna otra web ni la configuración global."
 confirmar "¿Seguimos?" || fallo "Cancelado: no se ha cambiado nada."
 
 paso_codigo
